@@ -1,0 +1,77 @@
+.rrm-floor-plan-wrap {
+    margin-top: 20px;
+}
+.rrm-floor-plan-container {
+    display: flex;
+    gap: 20px;
+    height: 700px;
+}
+.rrm-sidebar {
+    width: 300px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    padding: 15px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    overflow-y: auto;
+}
+.rrm-canvas-area {
+    flex-grow: 1;
+    background: #f0f0f1;
+    border: 2px dashed #b4b9be;
+    position: relative;
+    overflow: hidden;
+    background-image: radial-gradient(#d1d1d1 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+.rrm-draggable-res {
+    background: #e5f5fa;
+    border: 1px solid #0073aa;
+    padding: 10px;
+    margin-bottom: 10px;
+    cursor: grab;
+    border-radius: 4px;
+    user-select: none;
+}
+.rrm-draggable-res:active {
+    cursor: grabbing;
+}
+.rrm-table {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #333;
+    border-radius: 8px; /* For rect, dynamic if circle */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    touch-action: none;
+    box-sizing: border-box;
+    transition: background-color 0.2s;
+}
+.rrm-table.round {
+    border-radius: 50%;
+}
+.rrm-table:active {
+    cursor: grabbing;
+}
+.rrm-table.drop-target {
+    background-color: #d1f5d3;
+    border-color: #46b450;
+}
+.rrm-table .table-name {
+    font-weight: bold;
+    pointer-events: none;
+}
+.rrm-table .table-cap {
+    font-size: 11px;
+    color: #666;
+    pointer-events: none;
+}
+.rrm-table-reservations {
+    margin-top: 5px;
+    font-size: 10px;
+    color: #0073aa;
+    pointer-events: none;
+}
