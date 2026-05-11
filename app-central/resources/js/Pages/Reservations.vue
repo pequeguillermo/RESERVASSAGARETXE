@@ -20,13 +20,14 @@ const props = defineProps({
         type: Array,
         default: () => []
     },
-    members: {
+    special_schedules: {
         type: Array,
         default: () => []
     }
 });
 
 const activeTab = ref('libro'); // 'libro', 'club', 'horario', 'excepciones', 'emails'
+const emailSubTab = ref('plantillas'); // 'plantillas', 'cabecera', 'pie'
 
 // ---- ESTADO DE RESERVAS ----
 const formattedReservations = computed(() => {
@@ -106,10 +107,20 @@ const specialForm = useForm({
 });
 
 const emailForm = useForm({
+    from_name: props.settings.from_name || 'Sagaretxe',
+    from_email: props.settings.from_email || 'reservas@sagaretxe.com',
+    email_header: props.settings.email_header || '',
+    email_footer: props.settings.email_footer || '',
+    subject_confirmation: props.settings.subject_confirmation || 'Confirmación de tu reserva',
+    subject_cancellation: props.settings.subject_cancellation || 'Cancelación de tu reserva',
+    subject_reminder: props.settings.subject_reminder || 'Recordatorio de tu reserva',
+    subject_feedback: props.settings.subject_feedback || '¿Qué tal tu experiencia en Sagaretxe?',
     email_confirmation: props.settings.email_confirmation || 'Hola [nombre],\nTu reserva para el día [fecha] a las [hora] para [comensales] personas está confirmada.',
     email_cancellation: props.settings.email_cancellation || 'Hola [nombre],\nTu reserva ha sido cancelada.',
     email_reminder_24h: props.settings.email_reminder_24h || 'Hola [nombre],\nTe recordamos tu reserva mañana. Si no vas a asistir, por favor cancela respondiendo a este correo.',
-    email_feedback_24h: props.settings.email_feedback_24h || 'Hola [nombre],\n¿Qué tal estuvo tu experiencia? Déjanos una reseña en Google.'
+    email_feedback_24h: props.settings.email_feedback_24h || 'Hola [nombre],\n¿Qué tal estuvo tu experiencia? Déjanos una reseña en Google.',
+    url_confirm_redirect: props.settings.url_confirm_redirect || '',
+    url_cancel_redirect: props.settings.url_cancel_redirect || ''
 });
 
 const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -176,12 +187,7 @@ const saveEmails = () => {
                                     Libro de Reservas
                                 </button>
 
-                                <button @click="activeTab = 'club'" 
-                                    class="w-full flex items-center px-4 py-3 rounded-xl transition-all duration-200 font-bold text-sm"
-                                    :class="activeTab === 'club' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'">
-                                    <svg class="w-5 h-5 mr-3" :class="activeTab === 'club' ? 'text-white' : 'text-gray-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                                    Miembros del Club
-                                </button>
+
                                 
                                 <button @click="activeTab = 'horario'" 
                                     class="w-full flex items-center px-4 py-3 rounded-xl transition-all duration-200 font-bold text-sm"
@@ -281,13 +287,19 @@ const saveEmails = () => {
                                                 </td>
                                                 
                                                 <td class="px-6 py-4 whitespace-nowrap">
-                                                    <span v-if="reservation.status === 'confirmed'" class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-green-100 text-green-800 border border-green-200 shadow-sm">
+                                                    <span v-if="reservation.status === 'confirmed' || reservation.status === 'confirmada'" class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-green-100 text-green-800 border border-green-200 shadow-sm">
                                                         <span class="w-1.5 h-1.5 rounded-full bg-green-600 mr-1.5 my-auto"></span> Confirmada
                                                     </span>
-                                                    <span v-else-if="reservation.status === 'cancelled'" class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-gray-100 text-gray-800 line-through border border-gray-200 shadow-sm">
+                                                    <span v-else-if="reservation.status === 'pendiente'" class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-orange-100 text-orange-800 border border-orange-200 shadow-sm">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-orange-600 mr-1.5 my-auto"></span> Pendiente
+                                                    </span>
+                                                    <span v-else-if="reservation.status === 'cancelada 24'" class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-red-100 text-red-800 border border-red-200 shadow-sm">
+                                                        Cancelada (24h)
+                                                    </span>
+                                                    <span v-else-if="reservation.status === 'cancelled' || reservation.status === 'cancelada'" class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-gray-100 text-gray-800 line-through border border-gray-200 shadow-sm">
                                                         Cancelada
                                                     </span>
-                                                    <span v-else class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-blue-100 text-blue-800 border border-blue-200 shadow-sm">
+                                                    <span v-else class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-blue-100 text-blue-800 border border-blue-200 shadow-sm capitalize">
                                                         {{ reservation.status }}
                                                     </span>
                                                 </td>
@@ -323,73 +335,7 @@ const saveEmails = () => {
                             </div>
                         </div>
 
-                        <!-- TAB: CLUB SAGARETXE -->
-                        <div v-show="activeTab === 'club'" class="h-full flex flex-col">
-                            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
-                                <div>
-                                    <h3 class="text-xl font-extrabold text-gray-900">Miembros del Club Sagaretxe</h3>
-                                    <p class="text-sm text-gray-500 mt-1">Directorio de clientes registrados en el programa de fidelización.</p>
-                                </div>
-                                <div class="bg-indigo-100 text-indigo-800 text-sm font-bold px-4 py-2 rounded-full shadow-sm flex items-center border border-indigo-200">
-                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                                    {{ members.length }} Miembros
-                                </div>
-                            </div>
-                            
-                            <div class="flex-1 overflow-x-auto p-4">
-                                <div class="border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-                                    <table class="min-w-full divide-y divide-gray-200">
-                                        <thead class="bg-gray-50">
-                                            <tr>
-                                                <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Nombre del Socio</th>
-                                                <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Teléfono</th>
-                                                <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Reservas Totales</th>
-                                                <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha de Alta</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="bg-white divide-y divide-gray-200">
-                                            <tr v-for="member in members" :key="member.id" class="hover:bg-indigo-50 transition-colors duration-150">
-                                                <td class="px-6 py-4 whitespace-nowrap">
-                                                    <div class="flex items-center">
-                                                        <div class="flex-shrink-0 h-10 w-10">
-                                                            <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-lg">
-                                                                {{ member.name.charAt(0).toUpperCase() }}
-                                                            </div>
-                                                        </div>
-                                                        <div class="ml-4">
-                                                            <div class="text-sm font-bold text-gray-900">{{ member.name }}</div>
-                                                            <div class="text-xs text-gray-500">ID: #{{ String(member.id).padStart(4, '0') }}</div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap">
-                                                    <div class="text-sm text-gray-900 flex items-center font-medium">
-                                                        <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
-                                                        {{ member.phone }}
-                                                    </div>
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap">
-                                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200 shadow-sm">
-                                                        {{ member.reservations_count }} Reservas
-                                                    </span>
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
-                                                    {{ new Date(member.created_at).toLocaleDateString('es-ES') }}
-                                                </td>
-                                            </tr>
-                                            <tr v-if="members.length === 0">
-                                                <td colspan="4" class="px-6 py-16 text-center text-gray-500 text-lg font-medium">
-                                                    <div class="flex justify-center mb-4 text-gray-300">
-                                                        <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                                                    </div>
-                                                    Aún no hay miembros registrados en el club.
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
+
 
                         <!-- TAB: HORARIO GENERAL -->
                         <div v-show="activeTab === 'horario'" class="p-8 h-full">
@@ -398,35 +344,37 @@ const saveEmails = () => {
                             
                             <form @submit.prevent="saveSchedules" class="max-w-3xl space-y-3">
                                 <div v-for="(schedule, index) in scheduleForm.schedules" :key="index" 
-                                    class="flex items-center justify-between p-4 rounded-2xl border transition-all"
+                                    class="flex flex-col lg:flex-row lg:items-center gap-4 p-4 rounded-2xl border transition-all"
                                     :class="schedule.is_closed ? 'bg-red-50 border-red-100' : 'bg-white border-gray-200 shadow-sm'">
                                     
-                                    <div class="w-32 font-bold text-gray-800 text-lg">{{ days[schedule.day_of_week] }}</div>
-                                    
-                                    <div class="flex items-center">
-                                        <label class="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" v-model="schedule.is_closed" class="sr-only peer">
-                                            <div class="w-11 h-6 bg-blue-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
-                                            <span class="ml-3 text-sm font-semibold text-gray-700 w-16">{{ schedule.is_closed ? 'Cerrado' : 'Abierto' }}</span>
-                                        </label>
+                                    <div class="flex items-center w-full lg:w-56 flex-shrink-0 justify-between lg:justify-start">
+                                        <div class="w-24 font-bold text-gray-800 text-lg">{{ days[schedule.day_of_week] }}</div>
+                                        
+                                        <div class="flex items-center">
+                                            <label class="relative inline-flex items-center cursor-pointer">
+                                                <input type="checkbox" v-model="schedule.is_closed" class="sr-only peer">
+                                                <div class="w-11 h-6 bg-blue-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
+                                                <span class="ml-3 text-sm font-semibold text-gray-700 w-16">{{ schedule.is_closed ? 'Cerrado' : 'Abierto' }}</span>
+                                            </label>
+                                        </div>
                                     </div>
                                     
-                                    <div class="flex-1">
+                                    <div class="flex-1 w-full min-w-0">
                                         <template v-if="!schedule.is_closed">
-                                            <div class="flex flex-col md:flex-row gap-3">
+                                            <div class="flex flex-col sm:flex-row items-center gap-3 w-full">
                                                 <!-- Turno 1 -->
-                                                <div class="flex items-center space-x-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-100 flex-1">
-                                                    <span class="text-xs font-bold text-gray-500 w-14">T. Mañana</span>
-                                                    <input type="time" v-model="schedule.open_time" class="rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-1">
-                                                    <span class="text-gray-400 font-bold">-</span>
-                                                    <input type="time" v-model="schedule.close_time" class="rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-1">
+                                                <div class="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-100 flex-1 w-full sm:w-auto">
+                                                    <span class="text-xs font-bold text-gray-500 w-16 flex-shrink-0">T. Mañana</span>
+                                                    <input type="time" v-model="schedule.open_time" class="w-full min-w-0 rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-1 h-9" :max="schedule.close_time">
+                                                    <span class="text-gray-400 font-bold flex-shrink-0">-</span>
+                                                    <input type="time" v-model="schedule.close_time" class="w-full min-w-0 rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-1 h-9" :min="schedule.open_time" :max="schedule.open_time_2">
                                                 </div>
                                                 <!-- Turno 2 -->
-                                                <div class="flex items-center space-x-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-100 flex-1">
-                                                    <span class="text-xs font-bold text-gray-500 w-14">T. Tarde</span>
-                                                    <input type="time" v-model="schedule.open_time_2" class="rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-1">
-                                                    <span class="text-gray-400 font-bold">-</span>
-                                                    <input type="time" v-model="schedule.close_time_2" class="rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-1">
+                                                <div class="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-100 flex-1 w-full sm:w-auto">
+                                                    <span class="text-xs font-bold text-gray-500 w-16 flex-shrink-0">T. Tarde</span>
+                                                    <input type="time" v-model="schedule.open_time_2" class="w-full min-w-0 rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-1 h-9" :min="schedule.close_time" :max="schedule.close_time_2">
+                                                    <span class="text-gray-400 font-bold flex-shrink-0">-</span>
+                                                    <input type="time" v-model="schedule.close_time_2" class="w-full min-w-0 rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-1 h-9" :min="schedule.open_time_2">
                                                 </div>
                                             </div>
                                         </template>
@@ -471,19 +419,19 @@ const saveEmails = () => {
                                     <div v-if="!specialForm.is_closed" class="w-full grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
                                         <div>
                                             <label class="block text-xs font-bold text-gray-500 mb-1">Apertura (Mañana)</label>
-                                            <input type="time" v-model="specialForm.open_time" class="w-full rounded-xl border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 h-11">
+                                            <input type="time" v-model="specialForm.open_time" class="w-full rounded-xl border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 h-11" :max="specialForm.close_time">
                                         </div>
                                         <div>
                                             <label class="block text-xs font-bold text-gray-500 mb-1">Cierre (Mañana)</label>
-                                            <input type="time" v-model="specialForm.close_time" class="w-full rounded-xl border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 h-11">
+                                            <input type="time" v-model="specialForm.close_time" class="w-full rounded-xl border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 h-11" :min="specialForm.open_time" :max="specialForm.open_time_2">
                                         </div>
                                         <div>
                                             <label class="block text-xs font-bold text-gray-500 mb-1">Apertura (Tarde)</label>
-                                            <input type="time" v-model="specialForm.open_time_2" class="w-full rounded-xl border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 h-11">
+                                            <input type="time" v-model="specialForm.open_time_2" class="w-full rounded-xl border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 h-11" :min="specialForm.close_time" :max="specialForm.close_time_2">
                                         </div>
                                         <div>
                                             <label class="block text-xs font-bold text-gray-500 mb-1">Cierre (Tarde)</label>
-                                            <input type="time" v-model="specialForm.close_time_2" class="w-full rounded-xl border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 h-11">
+                                            <input type="time" v-model="specialForm.close_time_2" class="w-full rounded-xl border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 h-11" :min="specialForm.open_time_2">
                                         </div>
                                     </div>
                                     
@@ -534,52 +482,103 @@ const saveEmails = () => {
 
                         <!-- TAB: EMAILS -->
                         <div v-show="activeTab === 'emails'" class="p-8 h-full">
-                            <h3 class="text-2xl font-extrabold text-gray-900 mb-2">Plantillas Automáticas de Email</h3>
-                            <p class="text-gray-500 mb-6">Configura los mensajes que se envían a los clientes según el estado de su reserva.</p>
-                            
-                            <div class="flex flex-wrap gap-2 mb-8">
-                                <span class="bg-gray-100 text-gray-700 font-mono text-xs px-2 py-1 rounded font-bold border">[nombre]</span>
-                                <span class="bg-gray-100 text-gray-700 font-mono text-xs px-2 py-1 rounded font-bold border">[fecha]</span>
-                                <span class="bg-gray-100 text-gray-700 font-mono text-xs px-2 py-1 rounded font-bold border">[hora]</span>
-                                <span class="bg-gray-100 text-gray-700 font-mono text-xs px-2 py-1 rounded font-bold border">[comensales]</span>
+                            <div class="flex flex-col xl:flex-row xl:justify-between xl:items-center gap-6 mb-8">
+                                <div>
+                                    <h3 class="text-2xl font-extrabold text-gray-900 mb-2">Configuración de Correos</h3>
+                                    <p class="text-gray-500">Configura la cabecera, plantillas, pie de página, remitente y asunto.</p>
+                                </div>
+                                <div class="bg-gray-100/80 backdrop-blur-sm p-1.5 rounded-2xl shadow-sm flex flex-wrap sm:flex-nowrap gap-1 sm:space-x-1 border border-gray-200">
+                                    <button @click="emailSubTab = 'plantillas'" :class="emailSubTab === 'plantillas' ? 'bg-white text-indigo-700 shadow-md ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'" class="flex-1 sm:flex-none whitespace-nowrap px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-200">Plantillas</button>
+                                    <button @click="emailSubTab = 'cabecera'" :class="emailSubTab === 'cabecera' ? 'bg-white text-indigo-700 shadow-md ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'" class="flex-1 sm:flex-none whitespace-nowrap px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-200">Cabecera</button>
+                                    <button @click="emailSubTab = 'pie'" :class="emailSubTab === 'pie' ? 'bg-white text-indigo-700 shadow-md ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'" class="flex-1 sm:flex-none whitespace-nowrap px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-200">Pie de Página</button>
+                                    <button @click="emailSubTab = 'redirecciones'" :class="emailSubTab === 'redirecciones' ? 'bg-white text-indigo-700 shadow-md ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'" class="flex-1 sm:flex-none whitespace-nowrap px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-200">Redirecciones</button>
+                                </div>
                             </div>
                             
-                            <form @submit.prevent="saveEmails" class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div class="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-blue-500 transition-shadow">
-                                    <label class="flex items-center text-sm font-extrabold text-gray-800 mb-3">
-                                        <span class="w-6 h-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center mr-2">1</span>
-                                        Confirmación de Reserva
-                                    </label>
-                                    <textarea v-model="emailForm.email_confirmation" rows="5" class="w-full border-0 bg-gray-50 rounded-xl p-4 text-sm font-mono focus:ring-0 text-gray-700"></textarea>
+                            <div class="flex flex-wrap gap-2 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                <span class="text-sm font-bold text-gray-700 w-full mb-2">Shortcodes Disponibles:</span>
+                                <span class="bg-white text-indigo-600 font-mono text-xs px-3 py-1 rounded-full font-bold border shadow-sm">[nombre]</span>
+                                <span class="bg-white text-indigo-600 font-mono text-xs px-3 py-1 rounded-full font-bold border shadow-sm">[fecha]</span>
+                                <span class="bg-white text-indigo-600 font-mono text-xs px-3 py-1 rounded-full font-bold border shadow-sm">[hora]</span>
+                                <span class="bg-white text-indigo-600 font-mono text-xs px-3 py-1 rounded-full font-bold border shadow-sm">[comensales]</span>
+                                <span class="bg-white text-pink-600 font-mono text-xs px-3 py-1 rounded-full font-bold border shadow-sm">[confirmar]</span>
+                                <span class="bg-white text-pink-600 font-mono text-xs px-3 py-1 rounded-full font-bold border shadow-sm">[cancelar]</span>
+                            </div>
+                            
+                            <form @submit.prevent="saveEmails" class="space-y-6">
+                                
+                                <div v-show="emailSubTab === 'plantillas'" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 bg-indigo-50 p-6 rounded-2xl border border-indigo-100 mb-2">
+                                        <div>
+                                            <label class="block text-sm font-bold text-gray-700 mb-2">Remitente (Desde - Nombre)</label>
+                                            <input type="text" v-model="emailForm.from_name" placeholder="Ej: Reservas Sagaretxe" class="w-full rounded-xl border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 h-11">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-bold text-gray-700 mb-2">Email Remitente</label>
+                                            <input type="email" v-model="emailForm.from_email" placeholder="Ej: reservas@sagaretxe.com" class="w-full rounded-xl border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 h-11">
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 transition-shadow">
+                                        <label class="flex items-center text-sm font-extrabold text-gray-800 mb-3"><span class="w-6 h-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center mr-2">1</span> Confirmación de Reserva</label>
+                                        <input type="text" v-model="emailForm.subject_confirmation" placeholder="Asunto del correo" class="w-full mb-3 rounded-lg border-gray-300 text-sm h-10 shadow-sm focus:ring-indigo-500">
+                                        <textarea v-model="emailForm.email_confirmation" rows="5" class="w-full border-0 bg-gray-50 rounded-xl p-4 text-sm font-mono focus:ring-0 text-gray-700"></textarea>
+                                    </div>
+                                    
+                                    <div class="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 transition-shadow">
+                                        <label class="flex items-center text-sm font-extrabold text-gray-800 mb-3"><span class="w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center mr-2">2</span> Cancelación de Reserva</label>
+                                        <input type="text" v-model="emailForm.subject_cancellation" placeholder="Asunto del correo" class="w-full mb-3 rounded-lg border-gray-300 text-sm h-10 shadow-sm focus:ring-indigo-500">
+                                        <textarea v-model="emailForm.email_cancellation" rows="5" class="w-full border-0 bg-gray-50 rounded-xl p-4 text-sm font-mono focus:ring-0 text-gray-700"></textarea>
+                                    </div>
+                                    
+                                    <div class="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 transition-shadow">
+                                        <label class="flex items-center text-sm font-extrabold text-gray-800 mb-3"><span class="w-6 h-6 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center mr-2">3</span> Recordatorio (24h antes)</label>
+                                        <input type="text" v-model="emailForm.subject_reminder" placeholder="Asunto del correo" class="w-full mb-3 rounded-lg border-gray-300 text-sm h-10 shadow-sm focus:ring-indigo-500">
+                                        <textarea v-model="emailForm.email_reminder_24h" rows="5" class="w-full border-0 bg-gray-50 rounded-xl p-4 text-sm font-mono focus:ring-0 text-gray-700"></textarea>
+                                    </div>
+                                    
+                                    <div class="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 transition-shadow">
+                                        <label class="flex items-center text-sm font-extrabold text-gray-800 mb-3"><span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center mr-2">4</span> Feedback Google (24h después)</label>
+                                        <input type="text" v-model="emailForm.subject_feedback" placeholder="Asunto del correo" class="w-full mb-3 rounded-lg border-gray-300 text-sm h-10 shadow-sm focus:ring-indigo-500">
+                                        <textarea v-model="emailForm.email_feedback_24h" rows="5" class="w-full border-0 bg-gray-50 rounded-xl p-4 text-sm font-mono focus:ring-0 text-gray-700"></textarea>
+                                    </div>
+                                </div>
+
+                                <div v-show="emailSubTab === 'cabecera'">
+                                    <div class="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-indigo-500">
+                                        <label class="block text-sm font-extrabold text-gray-800 mb-3">Cabecera HTML (Header)</label>
+                                        <textarea v-model="emailForm.email_header" rows="12" placeholder="Introduce el HTML de la cabecera (incluyendo logo, estilos iniciales...)" class="w-full border-gray-300 rounded-xl p-4 text-sm font-mono focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                                    </div>
+                                </div>
+
+                                <div v-show="emailSubTab === 'pie'">
+                                    <div class="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-indigo-500">
+                                        <label class="block text-sm font-extrabold text-gray-800 mb-3">Pie de Página HTML (Footer)</label>
+                                        <textarea v-model="emailForm.email_footer" rows="12" placeholder="Introduce el HTML del pie de página (redes sociales, información legal...)" class="w-full border-gray-300 rounded-xl p-4 text-sm font-mono focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                                    </div>
+                                </div>
+
+                                <div v-show="emailSubTab === 'redirecciones'" class="space-y-6">
+                                    <div class="bg-indigo-50 border border-indigo-100 p-5 rounded-2xl shadow-sm">
+                                        <h4 class="font-extrabold text-indigo-900 mb-2">Páginas de Destino (Redirecciones)</h4>
+                                        <p class="text-sm text-indigo-700 mb-4">Cuando un cliente haga clic en "Confirmar" o "Cancelar" en su correo, la App Central validará la acción y le redirigirá automáticamente a estas URLs. Puedes diseñar estas páginas en tu WordPress.</p>
+                                        
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="block text-sm font-bold text-gray-700 mb-1">URL tras Confirmar Reserva</label>
+                                                <input type="url" v-model="emailForm.url_confirm_redirect" placeholder="Ej: https://misitio.com/reserva-confirmada" class="w-full rounded-xl border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 h-11 bg-white">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-bold text-gray-700 mb-1">URL tras Cancelar Reserva</label>
+                                                <input type="url" v-model="emailForm.url_cancel_redirect" placeholder="Ej: https://misitio.com/reserva-cancelada" class="w-full rounded-xl border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 h-11 bg-white">
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 
-                                <div class="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-blue-500 transition-shadow">
-                                    <label class="flex items-center text-sm font-extrabold text-gray-800 mb-3">
-                                        <span class="w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center mr-2">2</span>
-                                        Cancelación de Reserva
-                                    </label>
-                                    <textarea v-model="emailForm.email_cancellation" rows="5" class="w-full border-0 bg-gray-50 rounded-xl p-4 text-sm font-mono focus:ring-0 text-gray-700"></textarea>
-                                </div>
-                                
-                                <div class="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-blue-500 transition-shadow">
-                                    <label class="flex items-center text-sm font-extrabold text-gray-800 mb-3">
-                                        <span class="w-6 h-6 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center mr-2">3</span>
-                                        Recordatorio (24h antes)
-                                    </label>
-                                    <textarea v-model="emailForm.email_reminder_24h" rows="5" class="w-full border-0 bg-gray-50 rounded-xl p-4 text-sm font-mono focus:ring-0 text-gray-700"></textarea>
-                                </div>
-                                
-                                <div class="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-blue-500 transition-shadow">
-                                    <label class="flex items-center text-sm font-extrabold text-gray-800 mb-3">
-                                        <span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center mr-2">4</span>
-                                        Feedback Google (24h después)
-                                    </label>
-                                    <textarea v-model="emailForm.email_feedback_24h" rows="5" class="w-full border-0 bg-gray-50 rounded-xl p-4 text-sm font-mono focus:ring-0 text-gray-700"></textarea>
-                                </div>
-                                
-                                <div class="md:col-span-2 pt-4 flex justify-end">
-                                    <button type="submit" :disabled="emailForm.processing" class="bg-gray-900 hover:bg-black text-white font-bold py-3 px-8 rounded-xl shadow-lg transition-transform hover:-translate-y-1 w-full sm:w-auto">
-                                        {{ emailForm.processing ? 'Guardando...' : 'Guardar Textos Automáticos' }}
+                                <div class="pt-4 flex justify-end">
+                                    <button type="submit" :disabled="emailForm.processing" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition-transform hover:-translate-y-1 w-full sm:w-auto">
+                                        {{ emailForm.processing ? 'Guardando...' : 'Guardar Configuración de Correos' }}
                                     </button>
                                 </div>
                             </form>

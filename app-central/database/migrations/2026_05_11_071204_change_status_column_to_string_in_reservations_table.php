@@ -1,0 +1,30 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('reservations', function (Blueprint $table) {
+            $table->string('status')->default('pendiente')->change();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('reservations', function (Blueprint $table) {
+            // No podemos revertir a un enum de forma segura en sqlite usando DBAL fácilmente,
+            // pero podemos dejarlo como string o no hacer nada en el down.
+            $table->string('status')->default('confirmed')->change();
+        });
+    }
+};

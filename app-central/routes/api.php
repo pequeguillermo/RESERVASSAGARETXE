@@ -14,9 +14,12 @@ Route::get('/user', function (Request $request) {
 Route::post('/members', [MemberController::class, 'store']);
 Route::get('/members/check', [MemberController::class, 'check']);
 Route::get('/members/validate', [MemberController::class, 'validateQr']);
+Route::put('/members/{member}', [MemberController::class, 'update']);
 
 // Reservations
 Route::post('/reservations', [ReservationController::class, 'store']);
+Route::get('/reservations/{reservation}/confirm', [ReservationController::class, 'confirm'])->name('api.reservations.confirm')->middleware('signed');
+Route::get('/reservations/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('api.reservations.cancel')->middleware('signed');
 Route::get('/schedules/availability', [\App\Http\Controllers\Api\ScheduleController::class, 'availability']);
 
 // Validations

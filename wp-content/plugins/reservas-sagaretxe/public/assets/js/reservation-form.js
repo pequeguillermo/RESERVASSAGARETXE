@@ -76,8 +76,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    if (btnSubmit) {
-        btnSubmit.addEventListener('click', function(e) {
+    const form = document.getElementById('rrm-step-1');
+    if (form) {
+        form.addEventListener('submit', function(e) {
             e.preventDefault();
             
             const date = document.getElementById('rrm-date').value;
@@ -88,14 +89,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const phone = document.getElementById('rrm-phone').value;
             const notes = document.getElementById('rrm-notes') ? document.getElementById('rrm-notes').value : '';
 
+            // Ya no es necesario comprobar manualmente si están vacíos porque HTML5 lo hace por nosotros, 
+            // pero lo dejamos como doble validación de seguridad.
             if (!date || !time || !guests || !name || !email || !phone) {
                 messages.innerHTML = '<span style="color:red;">Por favor, completa todos los campos requeridos.</span>';
+                messages.style.display = 'block';
                 return;
             }
 
             btnSubmit.disabled = true;
             btnSubmit.innerText = 'Procesando...';
             messages.innerHTML = '';
+            messages.style.display = 'none';
 
             // Llama a la API central de Laravel
             fetch('http://127.0.0.1:8000/api/reservations', {
@@ -117,11 +122,12 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 btnSubmit.disabled = false;
                 btnSubmit.innerText = 'Confirmar Reserva';
+                messages.style.display = 'block';
 
                 if (data.reservation_id) {
                     let successMsg = `<span style="color:green;">¡Reserva confirmada con éxito! Revisa tu email.</span>`;
                     if (data.discount_applied) {
-                        successMsg += `<br><span style="color:green;"><strong>¡Se ha aplicado tu descuento de miembro del club Sagaretxe! 🎉</strong></span>`;
+                        successMsg += `<br><span style="color:green;"><strong>¡PERTENECES AL CLUB SAGARETXE! Recuerda indicarlo para que te apliquemos tu descuento.</strong></span>`;
                     }
                     messages.innerHTML = successMsg;
                     document.getElementById('rrm-step-1').style.display = 'none';
@@ -134,6 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 btnSubmit.disabled = false;
                 btnSubmit.innerText = 'Confirmar Reserva';
+                messages.style.display = 'block';
                 messages.innerHTML = '<span style="color:red;">Error de conexión con el servidor.</span>';
                 console.error(error);
             });

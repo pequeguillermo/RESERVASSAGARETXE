@@ -26,7 +26,10 @@ Route::post('/reservations/{reservation}/cancel', [\App\Http\Controllers\Admin\R
     ->middleware(['auth', 'verified'])->name('reservations.cancel');
 
 Route::get('/club', function () {
-    return Inertia::render('Club');
+    return Inertia::render('Club', [
+        'members' => \App\Models\Member::withCount('reservations')->orderBy('created_at', 'desc')->get(),
+        'settings' => \App\Models\Setting::all()->pluck('value', 'key')
+    ]);
 })->middleware(['auth', 'verified'])->name('club');
 
 Route::get('/settings', [\App\Http\Controllers\Admin\SettingsController::class, 'index'])

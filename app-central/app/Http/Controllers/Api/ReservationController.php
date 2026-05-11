@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Member;
 use App\Models\Reservation;
 use App\Mail\ReservationConfirmed;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -34,7 +35,7 @@ class ReservationController extends Controller
             'people' => $request->people,
             'notes' => $request->notes,
             'discount_applied' => $discountApplied,
-            'status' => 'confirmed'
+            'status' => 'pendiente'
         ]);
 
         if ($request->filled('email')) {
@@ -51,5 +52,37 @@ class ReservationController extends Controller
             'reservation_id' => $reservation->id,
             'discount_applied' => $discountApplied,
         ]);
+    }
+
+    public function confirm(Request $request, Reservation $reservation)
+    {
+        if ($reservation->status === 'pendiente') {
+            $reservation->update(['status' => 'confirmada']);
+        }
+        
+        $redirectUrl = Setting::where('key', 'url_confirm_redirect')->value('value');
+        
+        if ($redirectUrl) {
+            return redirect()->away($redirectUrl);
+        }
+        
+        return response('Reserva confirmada. Gracias.', 200);
+    }
+
+    public function cancel(Request $request, Reservation $reservation)
+    {
+        $status = $request->query('type') == '24' ? 'cancelada 24' : 'cancelada';
+        
+        if (in_array($reservation->status, ['pendiente', 'confirmada'])) {
+            $reservation->update(['status' => $status]);
+        }
+
+        $redirectUrl = Setting::where('key', 'url_cancel_redirect')->value('value');
+        
+        if ($redirectUrl) {
+            return redirect()->away($redirectUrl);
+        }
+        
+        return response('Reserva cancelada. Lamentamos que no puedas venir.', 200);
     }
 }

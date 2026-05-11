@@ -2,6 +2,16 @@
 
 ## Interacciones
 
+### 2026-05-10
+- **Levantamiento de servicios:**
+  - App Central Backend (API): Levantado en `http://127.0.0.1:8000`
+  - Frontend Vue (Vite): Levantado en `http://localhost:5175`
+  - WordPress / XAMPP: Disponible en `http://localhost/RESERVASSAGARETXE`
+- **Planificación:** Elaborando plan de desarrollo para agregar nuevos campos de perfil al Club Sagaretxe, optimización de solapamiento de horarios y nueva gestión de correos electrónicos.
+- **Rediseño UI/UX y Expansión Emails:**
+  - **Vue (Reservas y Club):** Añadido menú horizontal para dividir plantillas, cabecera y footer de los correos automáticos. Añadidos los campos de "Desde Nombre" y "Desde Email", además del Asunto de todos los correos. Corregido el flex-box del Horario General en Reservas. Añadida la pestaña "Redirecciones" para definir URLs de confirmación/cancelación personalizadas.
+  - **Plugins WP:** Rediseñado por completo el shortcode de reservas de mesa (ahora moderno, con grid layout). Rediseñado y ampliado el shortcode del Club Sagaretxe para incluir todos los campos del perfil extendido (DNI, Dirección, Preferencias).
+
 ### 2026-05-07
 - **Reactivación de Servicios:**
   - App Central Backend (API): Levantado en `http://127.0.0.1:8000`
