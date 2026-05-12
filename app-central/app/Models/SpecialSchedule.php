@@ -12,11 +12,13 @@ class SpecialSchedule extends Model
         'close_time',
         'open_time_2',
         'close_time_2',
-        'is_closed'
+        'is_closed',
+        'is_permanent'
     ];
 
     protected $casts = [
         'date' => 'date',
         'is_closed' => 'boolean',
+        'is_permanent' => 'boolean',
     ];
 }

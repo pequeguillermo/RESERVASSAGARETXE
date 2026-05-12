@@ -18,7 +18,7 @@ class SendReminderEmails extends Command
         $start = Carbon::now()->addHours(24)->startOfHour();
         $end = Carbon::now()->addHours(24)->endOfHour();
 
-        $reservations = Reservation::where('status', 'confirmed')
+        $reservations = Reservation::where('status', 'confirmada')
             ->whereBetween('date', [$start, $end])
             ->whereNotNull('email')
             ->get();

@@ -40,6 +40,8 @@ Route::post('/settings/schedules', [\App\Http\Controllers\Admin\SettingsControll
     ->middleware(['auth', 'verified'])->name('settings.schedules');
 Route::post('/settings/special-schedules', [\App\Http\Controllers\Admin\SettingsController::class, 'storeSpecialSchedule'])
     ->middleware(['auth', 'verified'])->name('settings.special.store');
+Route::post('/settings/special-schedules/quick-close', [\App\Http\Controllers\Admin\SettingsController::class, 'quickCloseShift'])
+    ->middleware(['auth', 'verified'])->name('settings.special.quick-close');
 Route::delete('/settings/special-schedules/{special_schedule}', [\App\Http\Controllers\Admin\SettingsController::class, 'destroySpecialSchedule'])
     ->middleware(['auth', 'verified'])->name('settings.special.destroy');
 

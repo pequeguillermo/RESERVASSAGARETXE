@@ -14,7 +14,7 @@ class ReservationController extends Controller
         $reservations = Reservation::with('member')->orderBy('date', 'desc')->get();
         
         // Agrupar estadísticas de clientes por teléfono
-        $clientStats = Reservation::selectRaw('phone, COUNT(*) as total_reservations, SUM(CASE WHEN status = "cancelled" THEN 1 ELSE 0 END) as total_cancellations, MAX(date) as last_reservation')
+        $clientStats = Reservation::selectRaw('phone, COUNT(*) as total_reservations, SUM(CASE WHEN status IN ("cancelada_tlf", "cancelada_mail") THEN 1 ELSE 0 END) as total_cancellations, MAX(date) as last_reservation')
             ->groupBy('phone')
             ->get()
             ->keyBy('phone');
@@ -54,6 +54,7 @@ class ReservationController extends Controller
         $validated = $request->validate([
             'date' => 'required|date',
             'people' => 'required|integer|min:1',
+            'status' => 'sometimes|string|in:pendiente,confirmada,cancelada_tlf,cancelada_mail'
         ]);
         
         $reservation->update($validated);
@@ -62,7 +63,7 @@ class ReservationController extends Controller
 
     public function cancel(Reservation $reservation)
     {
-        $reservation->update(['status' => 'cancelled']);
+        $reservation->update(['status' => 'cancelada_tlf']);
         
         if ($reservation->email) {
             \Illuminate\Support\Facades\Mail::to($reservation->email)->send(new \App\Mail\ReservationCancelled($reservation));

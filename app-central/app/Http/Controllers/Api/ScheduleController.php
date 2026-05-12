@@ -20,8 +20,15 @@ class ScheduleController extends Controller
         $date = Carbon::parse($dateStr);
         $dayOfWeek = $date->dayOfWeek; // 0 (Sunday) to 6 (Saturday)
 
-        // Comprobar horario especial
-        $special = SpecialSchedule::where('date', $date->format('Y-m-d'))->first();
+        // Comprobar horario especial (Puntual primero, luego Permanente si existe para ese mes/día)
+        $special = SpecialSchedule::where(function ($query) use ($date) {
+            $query->where('date', $date->format('Y-m-d'))
+                  ->orWhere(function ($q) use ($date) {
+                      $q->where('is_permanent', true)
+                        ->whereRaw('MONTH(date) = ?', [$date->month])
+                        ->whereRaw('DAY(date) = ?', [$date->day]);
+                  });
+        })->orderBy('is_permanent', 'asc')->first();
 
         if ($special) {
             if ($special->is_closed) {

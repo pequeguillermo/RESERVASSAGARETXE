@@ -71,10 +71,8 @@ class ReservationController extends Controller
 
     public function cancel(Request $request, Reservation $reservation)
     {
-        $status = $request->query('type') == '24' ? 'cancelada 24' : 'cancelada';
-        
         if (in_array($reservation->status, ['pendiente', 'confirmada'])) {
-            $reservation->update(['status' => $status]);
+            $reservation->update(['status' => 'cancelada_mail']);
         }
 
         $redirectUrl = Setting::where('key', 'url_cancel_redirect')->value('value');

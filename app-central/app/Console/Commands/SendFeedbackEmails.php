@@ -19,14 +19,14 @@ class SendFeedbackEmails extends Command
         $end = Carbon::now()->subHours(24)->endOfHour();
 
         // Podríamos pasarlas a completadas
-        $reservations = Reservation::whereIn('status', ['confirmed', 'completed'])
+        $reservations = Reservation::whereIn('status', ['confirmada', 'realizada'])
             ->whereBetween('date', [$start, $end])
             ->whereNotNull('email')
             ->get();
 
         foreach ($reservations as $reservation) {
             Mail::to($reservation->email)->send(new ReservationFeedback($reservation));
-            $reservation->update(['status' => 'completed']);
+            $reservation->update(['status' => 'realizada']);
             $this->info('Feedback sent to: ' . $reservation->email);
         }
 

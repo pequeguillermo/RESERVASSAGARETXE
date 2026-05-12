@@ -31,10 +31,20 @@ const emailSubTab = ref('plantillas'); // 'plantillas', 'cabecera', 'pie'
 
 // ---- ESTADO DE RESERVAS ----
 const formattedReservations = computed(() => {
+    const now = new Date();
     return props.reservations.map(res => {
         const dateObj = new Date(res.date);
+        
+        let finalStatus = res.status;
+        let isPast = dateObj < now;
+        
+        if (isPast && res.status === 'confirmada') {
+            finalStatus = 'realizada';
+        }
+
         return {
             ...res,
+            computedStatus: finalStatus,
             formattedDate: dateObj.toLocaleDateString('es-ES', { 
                 weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
             }),
@@ -51,6 +61,7 @@ const editForm = useForm({
     date: '',
     time: '',
     people: 1,
+    status: '',
 });
 
 const startEdit = (reservation) => {
@@ -59,6 +70,7 @@ const startEdit = (reservation) => {
     editForm.date = dateObj.toISOString().split('T')[0];
     editForm.time = dateObj.toTimeString().split(':')[0] + ':' + dateObj.toTimeString().split(':')[1];
     editForm.people = reservation.people;
+    editForm.status = reservation.status;
 };
 
 const saveEdit = (id) => {
@@ -99,11 +111,10 @@ const scheduleForm = useForm({
 
 const specialForm = useForm({
     date: '',
-    open_time: '',
-    close_time: '',
-    open_time_2: '',
-    close_time_2: '',
-    is_closed: false
+    is_closed: false,
+    is_permanent: false,
+    close_morning: false,
+    close_afternoon: false
 });
 
 const emailForm = useForm({
@@ -149,6 +160,34 @@ const deleteSpecial = (id) => {
 const saveEmails = () => {
     emailForm.post(route('settings.update'), {
         preserveScroll: true,
+    });
+};
+
+const quickClose = (dayOffset, shift) => {
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + dayOffset);
+    // Asegurarse de que el timezone no cambie la fecha local
+    const offset = targetDate.getTimezoneOffset() * 60000;
+    const localDate = new Date(targetDate.getTime() - offset);
+    const dateStr = localDate.toISOString().split('T')[0];
+    
+    if (confirm(`¿Estás seguro de que deseas cerrar el turno de ${shift === 'morning' ? 'mañana' : 'tarde'} para el ${dateStr}?`)) {
+        router.post(route('settings.special.quick-close'), {
+            date: dateStr,
+            shift: shift
+        }, {
+            preserveScroll: true
+        });
+    }
+};
+
+const formatSpanishDate = (dateString) => {
+    if (!dateString) return '';
+    const dateObj = new Date(dateString);
+    return dateObj.toLocaleDateString('es-ES', { 
+        day: '2-digit', 
+        month: 'long', 
+        year: 'numeric' 
     });
 };
 
@@ -218,10 +257,28 @@ const saveEmails = () => {
                         
                         <!-- TAB: LIBRO DE RESERVAS -->
                         <div v-show="activeTab === 'libro'" class="h-full flex flex-col">
-                            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
+                            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-white flex-wrap gap-4">
                                 <div>
                                     <h3 class="text-xl font-extrabold text-gray-900">Listado de Próximas Reservas</h3>
                                     <p class="text-sm text-gray-500 mt-1">Gestiona las asistencias y modificaciones de los clientes.</p>
+                                </div>
+                                <div class="flex flex-col sm:flex-row gap-2 text-xs">
+                                    <div class="flex gap-2">
+                                        <button @click="quickClose(0, 'morning')" class="bg-red-50 hover:bg-red-100 text-red-700 font-bold py-1.5 px-3 rounded shadow-sm border border-red-200 transition-colors">
+                                            Cerrar Hoy (Mañana)
+                                        </button>
+                                        <button @click="quickClose(0, 'afternoon')" class="bg-red-50 hover:bg-red-100 text-red-700 font-bold py-1.5 px-3 rounded shadow-sm border border-red-200 transition-colors">
+                                            Cerrar Hoy (Tarde)
+                                        </button>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button @click="quickClose(1, 'morning')" class="bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold py-1.5 px-3 rounded shadow-sm border border-orange-200 transition-colors">
+                                            Cerrar Mañana (Mañana)
+                                        </button>
+                                        <button @click="quickClose(1, 'afternoon')" class="bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold py-1.5 px-3 rounded shadow-sm border border-orange-200 transition-colors">
+                                            Cerrar Mañana (Tarde)
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -287,25 +344,38 @@ const saveEmails = () => {
                                                 </td>
                                                 
                                                 <td class="px-6 py-4 whitespace-nowrap">
-                                                    <span v-if="reservation.status === 'confirmed' || reservation.status === 'confirmada'" class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-green-100 text-green-800 border border-green-200 shadow-sm">
-                                                        <span class="w-1.5 h-1.5 rounded-full bg-green-600 mr-1.5 my-auto"></span> Confirmada
-                                                    </span>
-                                                    <span v-else-if="reservation.status === 'pendiente'" class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-orange-100 text-orange-800 border border-orange-200 shadow-sm">
-                                                        <span class="w-1.5 h-1.5 rounded-full bg-orange-600 mr-1.5 my-auto"></span> Pendiente
-                                                    </span>
-                                                    <span v-else-if="reservation.status === 'cancelada 24'" class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-red-100 text-red-800 border border-red-200 shadow-sm">
-                                                        Cancelada (24h)
-                                                    </span>
-                                                    <span v-else-if="reservation.status === 'cancelled' || reservation.status === 'cancelada'" class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-gray-100 text-gray-800 line-through border border-gray-200 shadow-sm">
-                                                        Cancelada
-                                                    </span>
-                                                    <span v-else class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-blue-100 text-blue-800 border border-blue-200 shadow-sm capitalize">
-                                                        {{ reservation.status }}
-                                                    </span>
+                                                    <div v-if="editingReservation !== reservation.id">
+                                                        <span v-if="reservation.computedStatus === 'confirmada' || reservation.computedStatus === 'confirmed'" class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-green-100 text-green-800 border border-green-200 shadow-sm">
+                                                            <span class="w-1.5 h-1.5 rounded-full bg-green-600 mr-1.5 my-auto"></span> Confirmada
+                                                        </span>
+                                                        <span v-else-if="reservation.computedStatus === 'pendiente'" class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-orange-100 text-orange-800 border border-orange-200 shadow-sm">
+                                                            <span class="w-1.5 h-1.5 rounded-full bg-orange-600 mr-1.5 my-auto"></span> Pendiente
+                                                        </span>
+                                                        <span v-else-if="reservation.computedStatus === 'cancelada_mail'" class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-red-100 text-red-800 border border-red-200 shadow-sm">
+                                                            Cancelada (Mail)
+                                                        </span>
+                                                        <span v-else-if="reservation.computedStatus === 'cancelada_tlf'" class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-red-100 text-red-800 border border-red-200 shadow-sm">
+                                                            Cancelada (Tlf)
+                                                        </span>
+                                                        <span v-else-if="reservation.computedStatus === 'realizada'" class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-blue-100 text-blue-800 border border-blue-200 shadow-sm">
+                                                            <span class="w-1.5 h-1.5 rounded-full bg-blue-600 mr-1.5 my-auto"></span> Realizada
+                                                        </span>
+                                                        <span v-else class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-gray-100 text-gray-800 line-through border border-gray-200 shadow-sm capitalize">
+                                                            {{ reservation.computedStatus }}
+                                                        </span>
+                                                    </div>
+                                                    <div v-else>
+                                                        <select v-model="editForm.status" class="rounded border-gray-300 shadow-sm text-sm w-full py-1">
+                                                            <option value="pendiente">Pendiente</option>
+                                                            <option value="confirmada">Confirmada</option>
+                                                            <option value="cancelada_mail">Cancelada Mail</option>
+                                                            <option value="cancelada_tlf">Cancelada Tlf</option>
+                                                        </select>
+                                                    </div>
                                                 </td>
 
                                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <div v-if="editingReservation !== reservation.id && reservation.status === 'confirmed'" class="flex justify-end space-x-3">
+                                                    <div v-if="editingReservation !== reservation.id && reservation.computedStatus !== 'realizada'" class="flex justify-end space-x-3">
                                                         <button @click="startEdit(reservation)" class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 p-2 rounded-lg transition-colors" title="Editar Reserva">
                                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                                         </button>
@@ -402,41 +472,60 @@ const saveEmails = () => {
                                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                                     Registrar Nueva Fecha Especial
                                 </h4>
-                                <form @submit.prevent="saveSpecial" class="flex flex-col md:flex-row gap-5 items-end">
-                                    <div class="w-full md:w-auto flex-1">
-                                        <label class="block text-sm font-bold text-gray-700 mb-1">Día Exacto</label>
-                                        <input type="date" v-model="specialForm.date" required class="w-full rounded-xl border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 h-11">
-                                    </div>
-                                    
-                                    <div class="w-full md:w-auto flex items-center h-11 px-2">
-                                        <label class="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" v-model="specialForm.is_closed" class="sr-only peer">
-                                            <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
-                                            <span class="ml-3 text-sm font-bold" :class="specialForm.is_closed ? 'text-red-600' : 'text-gray-700'">Cerrar Día Completo</span>
-                                        </label>
-                                    </div>
+                                <form @submit.prevent="saveSpecial" class="bg-white/50 p-6 rounded-2xl border border-blue-50 shadow-inner">
+                                    <div class="flex flex-col lg:flex-row gap-6 items-center">
+                                        <!-- Selector de Fecha -->
+                                        <div class="w-full lg:w-48 flex-shrink-0">
+                                            <label class="block text-sm font-bold text-gray-700 mb-2">Día Exacto</label>
+                                            <input type="date" v-model="specialForm.date" required class="w-full rounded-xl border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 h-12 font-bold text-gray-800">
+                                        </div>
+                                        
+                                        <!-- Botones Deslizantes (Grid) -->
+                                        <div class="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                            
+                                            <!-- Cerrar Día Completo -->
+                                            <label class="flex items-center justify-between px-4 py-3 rounded-xl border bg-white shadow-sm cursor-pointer transition-colors" :class="specialForm.is_closed ? 'border-red-400 bg-red-50 hover:bg-red-50' : 'border-gray-200 hover:bg-gray-50'">
+                                                <span class="text-sm font-bold" :class="specialForm.is_closed ? 'text-red-700' : 'text-gray-700'">Cerrar Día Completo</span>
+                                                <div class="relative inline-flex items-center ml-2">
+                                                    <input type="checkbox" v-model="specialForm.is_closed" class="sr-only peer">
+                                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
+                                                </div>
+                                            </label>
 
-                                    <div v-if="!specialForm.is_closed" class="w-full grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
-                                        <div>
-                                            <label class="block text-xs font-bold text-gray-500 mb-1">Apertura (Mañana)</label>
-                                            <input type="time" v-model="specialForm.open_time" class="w-full rounded-xl border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 h-11" :max="specialForm.close_time">
-                                        </div>
-                                        <div>
-                                            <label class="block text-xs font-bold text-gray-500 mb-1">Cierre (Mañana)</label>
-                                            <input type="time" v-model="specialForm.close_time" class="w-full rounded-xl border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 h-11" :min="specialForm.open_time" :max="specialForm.open_time_2">
-                                        </div>
-                                        <div>
-                                            <label class="block text-xs font-bold text-gray-500 mb-1">Apertura (Tarde)</label>
-                                            <input type="time" v-model="specialForm.open_time_2" class="w-full rounded-xl border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 h-11" :min="specialForm.close_time" :max="specialForm.close_time_2">
-                                        </div>
-                                        <div>
-                                            <label class="block text-xs font-bold text-gray-500 mb-1">Cierre (Tarde)</label>
-                                            <input type="time" v-model="specialForm.close_time_2" class="w-full rounded-xl border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 h-11" :min="specialForm.open_time_2">
+                                            <!-- Cerrar Mañana -->
+                                            <label class="flex items-center justify-between px-4 py-3 rounded-xl border bg-white shadow-sm cursor-pointer transition-colors" :class="specialForm.close_morning || specialForm.is_closed ? 'border-orange-300 bg-orange-50 hover:bg-orange-50' : 'border-gray-200 hover:bg-gray-50'">
+                                                <span class="text-sm font-bold" :class="specialForm.close_morning || specialForm.is_closed ? 'text-orange-700' : 'text-gray-700'">Cerrar Mañanas</span>
+                                                <div class="relative inline-flex items-center ml-2" :class="{'opacity-50 pointer-events-none': specialForm.is_closed}">
+                                                    <input type="checkbox" v-model="specialForm.close_morning" class="sr-only peer" :disabled="specialForm.is_closed">
+                                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                                                </div>
+                                            </label>
+
+                                            <!-- Cerrar Tarde -->
+                                            <label class="flex items-center justify-between px-4 py-3 rounded-xl border bg-white shadow-sm cursor-pointer transition-colors" :class="specialForm.close_afternoon || specialForm.is_closed ? 'border-orange-300 bg-orange-50 hover:bg-orange-50' : 'border-gray-200 hover:bg-gray-50'">
+                                                <span class="text-sm font-bold" :class="specialForm.close_afternoon || specialForm.is_closed ? 'text-orange-700' : 'text-gray-700'">Cerrar Tardes</span>
+                                                <div class="relative inline-flex items-center ml-2" :class="{'opacity-50 pointer-events-none': specialForm.is_closed}">
+                                                    <input type="checkbox" v-model="specialForm.close_afternoon" class="sr-only peer" :disabled="specialForm.is_closed">
+                                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                                                </div>
+                                            </label>
+
+                                            <!-- Excepción Permanente -->
+                                            <label class="flex items-center justify-between px-4 py-3 rounded-xl border bg-white shadow-sm cursor-pointer transition-colors" :class="specialForm.is_permanent ? 'border-blue-400 bg-blue-50 hover:bg-blue-50' : 'border-gray-200 hover:bg-gray-50'">
+                                                <span class="text-sm font-bold" :class="specialForm.is_permanent ? 'text-blue-800' : 'text-gray-700'">Excepción Permanente</span>
+                                                <div class="relative inline-flex items-center ml-2">
+                                                    <input type="checkbox" v-model="specialForm.is_permanent" class="sr-only peer">
+                                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                                </div>
+                                            </label>
                                         </div>
                                     </div>
                                     
-                                    <div class="w-full md:w-auto ml-auto">
-                                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold h-11 px-6 rounded-xl shadow-md transition-colors w-full mt-4 md:mt-0">Añadir Excepción</button>
+                                    <div class="mt-6 flex justify-end">
+                                        <button type="submit" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold h-12 px-8 rounded-xl shadow-lg shadow-blue-500/30 transition-all hover:-translate-y-0.5 hover:shadow-blue-500/40 w-full sm:w-auto flex items-center justify-center gap-2">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                            Guardar Excepción
+                                        </button>
                                     </div>
                                 </form>
                             </div>
@@ -447,6 +536,7 @@ const saveEmails = () => {
                                     <thead class="bg-gray-50">
                                         <tr>
                                             <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha</th>
+                                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Tipo</th>
                                             <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Estado</th>
                                             <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Horario Aplicado</th>
                                             <th class="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Acción</th>
@@ -454,7 +544,11 @@ const saveEmails = () => {
                                     </thead>
                                     <tbody class="bg-white divide-y divide-gray-200">
                                         <tr v-for="special in special_schedules" :key="special.id" class="hover:bg-gray-50 transition-colors">
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-extrabold text-gray-900">{{ special.date }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-extrabold text-gray-900 capitalize">{{ formatSpanishDate(special.date) }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span v-if="special.is_permanent" class="px-2.5 py-0.5 inline-flex text-[10px] leading-5 font-bold rounded bg-blue-100 text-blue-800 uppercase tracking-wider">Permanente</span>
+                                                <span v-else class="px-2.5 py-0.5 inline-flex text-[10px] leading-5 font-bold rounded bg-gray-100 text-gray-600 uppercase tracking-wider">Puntual</span>
+                                            </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <span v-if="special.is_closed" class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-red-100 text-red-800">Cerrado Completamente</span>
                                                 <span v-else class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-green-100 text-green-800">Horario Modificado</span>

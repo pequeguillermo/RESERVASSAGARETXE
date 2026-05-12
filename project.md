@@ -2,6 +2,16 @@
 
 ## Interacciones
 
+### 2026-05-11
+- **Levantamiento de servicios:**
+  - App Central Backend (API): Levantado en `http://127.0.0.1:8000`
+  - Frontend Vue (Vite): Levantado en `http://localhost:5173`
+  - WordPress / XAMPP: Disponible en `http://localhost/RESERVASSAGARETXE`
+- **Desarrollo:**
+  - Se ha añadido la funcionalidad de crear excepciones de horario **"Permanentes"** (aplicables todos los años) o **"Puntuales"**.
+  - Se han añadido 4 botones rápidos en la pestaña de Libro de Reservas para que los empleados puedan **"Cerrar Hoy"** o **"Cerrar Mañana"** (turnos de mañana y tarde) en un clic, creando excepciones puntuales de forma automatizada.
+
+
 ### 2026-05-10
 - **Levantamiento de servicios:**
   - App Central Backend (API): Levantado en `http://127.0.0.1:8000`

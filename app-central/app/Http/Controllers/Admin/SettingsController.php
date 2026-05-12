@@ -61,14 +61,31 @@ class SettingsController extends Controller
     {
         $validated = $request->validate([
             'date' => 'required|date',
-            'open_time' => 'nullable',
-            'close_time' => 'nullable',
-            'open_time_2' => 'nullable',
-            'close_time_2' => 'nullable',
-            'is_closed' => 'boolean'
+            'is_closed' => 'boolean',
+            'is_permanent' => 'boolean',
+            'close_morning' => 'boolean',
+            'close_afternoon' => 'boolean'
         ]);
 
-        SpecialSchedule::updateOrCreate(['date' => $validated['date']], $validated);
+        $dateObj = \Carbon\Carbon::parse($validated['date']);
+        $regular = Schedule::where('day_of_week', $dateObj->dayOfWeek)->first();
+
+        $data = [
+            'is_closed' => $validated['is_closed'] ?? false,
+            'is_permanent' => $validated['is_permanent'] ?? false,
+            'open_time' => (!empty($validated['is_closed']) || !empty($validated['close_morning'])) ? null : ($regular ? $regular->open_time : null),
+            'close_time' => (!empty($validated['is_closed']) || !empty($validated['close_morning'])) ? null : ($regular ? $regular->close_time : null),
+            'open_time_2' => (!empty($validated['is_closed']) || !empty($validated['close_afternoon'])) ? null : ($regular ? $regular->open_time_2 : null),
+            'close_time_2' => (!empty($validated['is_closed']) || !empty($validated['close_afternoon'])) ? null : ($regular ? $regular->close_time_2 : null),
+        ];
+
+        if ((!empty($validated['close_morning']) && !empty($validated['close_afternoon'])) || 
+            (empty($data['open_time']) && empty($data['close_time']) && empty($data['open_time_2']) && empty($data['close_time_2']))) {
+            $data['is_closed'] = true;
+        }
+
+        SpecialSchedule::updateOrCreate(['date' => $validated['date']], $data);
+
         return redirect()->back()->with('success', 'Día especial guardado');
     }
 
@@ -76,5 +93,46 @@ class SettingsController extends Controller
     {
         $special_schedule->delete();
         return redirect()->back()->with('success', 'Día especial eliminado');
+    }
+
+    public function quickCloseShift(Request $request)
+    {
+        $validated = $request->validate([
+            'date' => 'required|date',
+            'shift' => 'required|in:morning,afternoon'
+        ]);
+        
+        $special = SpecialSchedule::where('date', $validated['date'])->first();
+        
+        if (!$special) {
+            $dateObj = \Carbon\Carbon::parse($validated['date']);
+            $regular = Schedule::where('day_of_week', $dateObj->dayOfWeek)->first();
+            
+            $special = new SpecialSchedule([
+                'date' => $validated['date'],
+                'open_time' => $regular ? $regular->open_time : null,
+                'close_time' => $regular ? $regular->close_time : null,
+                'open_time_2' => $regular ? $regular->open_time_2 : null,
+                'close_time_2' => $regular ? $regular->close_time_2 : null,
+                'is_closed' => false,
+                'is_permanent' => false
+            ]);
+        }
+        
+        if ($validated['shift'] === 'morning') {
+            $special->open_time = null;
+            $special->close_time = null;
+        } else {
+            $special->open_time_2 = null;
+            $special->close_time_2 = null;
+        }
+        
+        if (empty($special->open_time) && empty($special->close_time) && empty($special->open_time_2) && empty($special->close_time_2)) {
+            $special->is_closed = true;
+        }
+        
+        $special->save();
+        
+        return redirect()->back()->with('success', 'Turno cerrado correctamente para el ' . $validated['date']);
     }
 }
