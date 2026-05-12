@@ -19,10 +19,6 @@ const props = defineProps({
     special_schedules: {
         type: Array,
         default: () => []
-    },
-    special_schedules: {
-        type: Array,
-        default: () => []
     }
 });
 
