@@ -2,6 +2,16 @@
 
 ## Interacciones
 
+### 2026-05-12
+- **Levantamiento de servicios:**
+  - App Central Backend (API): Levantado en `http://127.0.0.1:8000`
+  - Frontend Vue (Vite): Levantado en `http://localhost:5174`
+  - WordPress / XAMPP: Disponible en `http://localhost/RESERVASSAGARETXE`
+- **Despliegue en Coolify:**
+  - Se ha solucionado el error 502 Bad Gateway en Coolify ajustando el comando de inicio de Laravel a `php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000`.
+  - Se han corregido los errores de Mixed Content añadiendo las variables de entorno `APP_URL`, `ASSET_URL` y `FORCE_HTTPS`.
+  - Se ha modificado `web.php` para que la raíz `/` redirija al `dashboard` y al login, en vez de mostrar la página de bienvenida de Laravel.
+  - La aplicación ya es visible correctamente en `https://app.sagaretxe.net`.
 ### 2026-05-11
 - **Levantamiento de servicios:**
   - App Central Backend (API): Levantado en `http://127.0.0.1:8000`
