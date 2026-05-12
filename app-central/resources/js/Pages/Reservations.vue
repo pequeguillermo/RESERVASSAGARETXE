@@ -410,7 +410,7 @@ const formatSpanishDate = (dateString) => {
                             <h3 class="text-2xl font-extrabold text-gray-900 mb-2">Horario General de Apertura</h3>
                             <p class="text-gray-500 mb-8">Establece el horario semanal por defecto del restaurante.</p>
                             
-                            <form @submit.prevent="saveSchedules" class="max-w-3xl space-y-3">
+                            <form @submit.prevent="saveSchedules" class="w-full space-y-3">
                                 <div v-for="(schedule, index) in scheduleForm.schedules" :key="index" 
                                     class="flex flex-col lg:flex-row lg:items-center gap-4 p-4 rounded-2xl border transition-all"
                                     :class="schedule.is_closed ? 'bg-red-50 border-red-100' : 'bg-white border-gray-200 shadow-sm'">

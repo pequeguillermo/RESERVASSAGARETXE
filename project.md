@@ -60,3 +60,4 @@
 - **Plano de sala:** Se ha modificado el sistema de mesas Drag&Drop (Sala) para permitir crear mesas redondas, modificando el CSS, JS y el guardado en base de datos. Se ha reemplazado el sistema de ventanas emergentes nativas (prompt/confirm) por un modal HTML personalizado para introducir nombre, capacidad y forma. TambiÃ©n se ha incorporado la capacidad de hacer doble clic sobre una mesa existente para editar sus propiedades o eliminarla (incluso desasignÃ¡ndola de reservas existentes si se borra).
 - **Servidor Local:** Proyecto disponible en `http://localhost/RESERVASSAGARETXE` (puerto 80 por defecto en XAMPP).
 - Corrección de Bug: Actualizado el endpoint de la API MemberController@store para procesar y guardar todos los campos del perfil (dirección, dni, preferencias) enviados desde el formulario de WordPress.
+- Mejora UI: El formulario de 'Horario General' ahora ocupa todo el ancho de la pantalla (fullpage) tras quitar el límite de ancho máximo (max-w-3xl).
