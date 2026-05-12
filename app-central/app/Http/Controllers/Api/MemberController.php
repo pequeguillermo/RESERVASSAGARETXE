@@ -11,20 +11,32 @@ class MemberController extends Controller
 {
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
+            'surname' => 'nullable|string|max:255',
+            'dni' => 'nullable|string|max:20',
+            'postal_code' => 'nullable|string|max:10',
+            'birth_date' => 'nullable|date',
+            'address' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'pref_space' => 'nullable|string|max:50',
+            'pref_food' => 'nullable|string|max:50',
+            'pref_drink1' => 'nullable|string|max:50',
+            'pref_drink2' => 'nullable|string|max:50',
+            'pref_time' => 'nullable|string|max:50',
+            'how_knew_us' => 'nullable|string|max:50',
         ]);
 
         $member = Member::where('phone', $request->phone)->first();
 
         if (!$member) {
-            $member = Member::create([
-                'name' => $request->name,
-                'phone' => $request->phone,
-                'qr_token' => Str::uuid()->toString(),
-                'active' => true,
-            ]);
+            $validated['qr_token'] = Str::uuid()->toString();
+            $validated['active'] = true;
+            $member = Member::create($validated);
+        } else {
+            // Actualizar si ya existía para guardar los campos nuevos
+            $member->update($validated);
         }
 
         return response()->json([
