@@ -12,6 +12,9 @@
   - Se han corregido los errores de Mixed Content añadiendo las variables de entorno `APP_URL`, `ASSET_URL` y `FORCE_HTTPS`.
   - Se ha modificado `web.php` para que la raíz `/` redirija al `dashboard` y al login, en vez de mostrar la página de bienvenida de Laravel.
   - La aplicación ya es visible correctamente en `https://app.sagaretxe.net`.
+- **Migración y Conexión de Plugins:**
+  - Se ha creado una migración `2026_05_12_062548_create_admin_user.php` para generar automáticamente el usuario administrador (`admin@sagaretxe.com`) en la base de datos de producción durante el próximo despliegue.
+  - Se han actualizado los plugins `reservas-sagaretxe` y `sagaretxe-club` para que sus peticiones apunten a la API de producción (`https://app.sagaretxe.net/api/...`) en lugar de a `127.0.0.1`.
 ### 2026-05-11
 - **Levantamiento de servicios:**
   - App Central Backend (API): Levantado en `http://127.0.0.1:8000`

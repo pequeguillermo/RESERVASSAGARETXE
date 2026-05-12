@@ -184,7 +184,7 @@ function sc_render_club_form() {
                 btn.innerText = 'Registrando...';
                 messages.style.display = 'none';
 
-                fetch('http://127.0.0.1:8000/api/members', {
+                fetch('https://app.sagaretxe.net/api/members', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

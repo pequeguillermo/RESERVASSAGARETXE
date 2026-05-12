@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
             timeSelect.disabled = true;
 
             try {
-                const response = await fetch(`http://127.0.0.1:8000/api/schedules/availability?date=${date}`);
+                const response = await fetch(`https://app.sagaretxe.net/api/schedules/availability?date=${date}`);
                 const data = await response.json();
 
                 if (data.available === false) {
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
             messages.style.display = 'none';
 
             // Llama a la API central de Laravel
-            fetch('http://127.0.0.1:8000/api/reservations', {
+            fetch('https://app.sagaretxe.net/api/reservations', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
