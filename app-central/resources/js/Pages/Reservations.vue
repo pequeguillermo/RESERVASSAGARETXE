@@ -181,7 +181,7 @@ const emailForm = useForm({
     url_cancel_redirect: props.settings.url_cancel_redirect || '',
     admin_email: props.settings.admin_email || '',
     subject_admin_reservation: props.settings.subject_admin_reservation || '🔔 Nueva Reserva Recibida',
-    email_admin_reservation: props.settings.email_admin_reservation || 'Se ha recibido una nueva reserva:\n\nCliente: [nombre]\nFecha: [fecha]\nHora: [hora]\nComensales: [comensales]\nTeléfono: [telefono]\nEmail: [email]'
+    email_admin_reservation: props.settings.email_admin_reservation || 'Se ha recibido una nueva reserva:\n\nCliente: [nombre]\nFecha: [fecha]\nHora: [hora]\nComensales: [comensales]\nTeléfono: [telefono]\nEmail: [email]\nNecesidades: [necesidades]\nNotas: [notas]'
 });
 
 const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -715,7 +715,19 @@ const formatSpanishDate = (dateString) => {
                                     <div class="bg-white border-2 border-orange-200 p-5 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-orange-400 transition-shadow">
                                         <label class="flex items-center text-sm font-extrabold text-gray-800 mb-3"><span class="w-6 h-6 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center mr-2">📩</span> Aviso Admin: Nueva Reserva</label>
                                         <input type="text" v-model="emailForm.subject_admin_reservation" placeholder="Asunto del correo" class="w-full mb-3 rounded-lg border-gray-300 text-sm h-10 shadow-sm focus:ring-orange-500">
-                                        <textarea v-model="emailForm.email_admin_reservation" rows="5" class="w-full border-0 bg-orange-50 rounded-xl p-4 text-sm font-mono focus:ring-0 text-gray-700"></textarea>
+                                        <textarea v-model="emailForm.email_admin_reservation" rows="8" class="w-full border-0 bg-orange-50 rounded-xl p-4 text-sm font-mono focus:ring-0 text-gray-700"></textarea>
+                                        
+                                        <div class="mt-3 flex flex-wrap gap-2">
+                                            <span class="text-xs font-bold text-gray-500 w-full mb-1">Shortcodes Disponibles para este aviso:</span>
+                                            <span class="bg-orange-100 text-orange-800 font-mono text-xs px-2 py-1 rounded shadow-sm border border-orange-200">[nombre]</span>
+                                            <span class="bg-orange-100 text-orange-800 font-mono text-xs px-2 py-1 rounded shadow-sm border border-orange-200">[fecha]</span>
+                                            <span class="bg-orange-100 text-orange-800 font-mono text-xs px-2 py-1 rounded shadow-sm border border-orange-200">[hora]</span>
+                                            <span class="bg-orange-100 text-orange-800 font-mono text-xs px-2 py-1 rounded shadow-sm border border-orange-200">[comensales]</span>
+                                            <span class="bg-orange-100 text-orange-800 font-mono text-xs px-2 py-1 rounded shadow-sm border border-orange-200">[telefono]</span>
+                                            <span class="bg-orange-100 text-orange-800 font-mono text-xs px-2 py-1 rounded shadow-sm border border-orange-200">[email]</span>
+                                            <span class="bg-orange-100 text-orange-800 font-mono text-xs px-2 py-1 rounded shadow-sm border border-orange-200">[necesidades]</span>
+                                            <span class="bg-orange-100 text-orange-800 font-mono text-xs px-2 py-1 rounded shadow-sm border border-orange-200">[notas]</span>
+                                        </div>
                                     </div>
                                 </div>
 

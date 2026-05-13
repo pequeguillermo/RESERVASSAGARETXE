@@ -89,12 +89,22 @@ class ReservationController extends Controller
             try {
                 $subjectTpl = Setting::where('key', 'subject_admin_reservation')->value('value') ?? '🔔 Nueva Reserva Recibida';
                 $bodyTpl = Setting::where('key', 'email_admin_reservation')->value('value') 
-                    ?? "Se ha recibido una nueva reserva:\n\nCliente: [nombre]\nFecha: [fecha]\nHora: [hora]\nComensales: [comensales]\nTeléfono: [telefono]\nEmail: [email]";
+                    ?? "Se ha recibido una nueva reserva:\n\nCliente: [nombre]\nFecha: [fecha]\nHora: [hora]\nComensales: [comensales]\nTeléfono: [telefono]\nEmail: [email]\nNecesidades: [necesidades]\nNotas: [notas]";
+
+                $necesidades = [];
+                if ($reservation->allergies) $necesidades[] = 'Alergias';
+                if ($reservation->celiac) $necesidades[] = 'Celíacos';
+                if ($reservation->strollers) $necesidades[] = 'Carritos de bebé';
+                if ($reservation->reduced_mobility) $necesidades[] = 'Movilidad reducida';
+                if ($reservation->wheelchairs) $necesidades[] = 'Silla de ruedas';
+                $necesidadesStr = empty($necesidades) ? 'Ninguna' : implode(', ', $necesidades);
+                
+                $notasStr = $reservation->notes ?: 'Ninguna';
 
                 $dateObj2 = \Carbon\Carbon::parse($reservation->date);
                 $body = str_replace(
-                    ['[nombre]', '[fecha]', '[hora]', '[comensales]', '[telefono]', '[email]'],
-                    [$reservation->name, $dateObj2->format('d/m/Y'), $dateObj2->format('H:i'), $reservation->people, $reservation->phone, $reservation->email ?? '-'],
+                    ['[nombre]', '[fecha]', '[hora]', '[comensales]', '[telefono]', '[email]', '[necesidades]', '[notas]'],
+                    [$reservation->name, $dateObj2->format('d/m/Y'), $dateObj2->format('H:i'), $reservation->people, $reservation->phone, $reservation->email ?? '-', $necesidadesStr, $notasStr],
                     $bodyTpl
                 );
                 $subject = str_replace(
