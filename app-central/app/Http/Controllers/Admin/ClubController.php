@@ -40,4 +40,10 @@ class ClubController extends Controller
         
         return redirect()->back()->with('success', 'Miembro creado correctamente');
     }
+
+    public function destroy(Member $member)
+    {
+        $member->delete();
+        return redirect()->back()->with('success', 'Miembro eliminado correctamente');
+    }
 }

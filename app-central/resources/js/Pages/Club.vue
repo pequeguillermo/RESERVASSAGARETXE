@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, useForm, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 
@@ -139,6 +139,12 @@ const saveMember = () => {
         editForm.put(`/api/members/${editMemberId.value}`, {
             onSuccess: () => closeEditModal()
         });
+    }
+};
+
+const deleteMember = (member) => {
+    if (confirm(`¿Estás seguro de que quieres eliminar a ${member.name} ${member.surname || ''}? Esta acción no se puede deshacer.`)) {
+        router.delete(`/club/${member.id}`);
     }
 };
 
@@ -288,9 +294,14 @@ const saveEmails = () => {
                                                 {{ new Date(member.created_at).toLocaleDateString('es-ES') }}
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <button @click="openEditModal(member)" class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-lg transition-colors font-bold shadow-sm border border-indigo-100">
-                                                    Editar / Ver
-                                                </button>
+                                                <div class="flex justify-end gap-2">
+                                                    <button @click="openEditModal(member)" class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-lg transition-colors font-bold shadow-sm border border-indigo-100">
+                                                        Editar / Ver
+                                                    </button>
+                                                    <button @click="deleteMember(member)" class="text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 p-1.5 rounded-lg transition-colors shadow-sm border border-red-100" title="Eliminar miembro">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     </tbody>

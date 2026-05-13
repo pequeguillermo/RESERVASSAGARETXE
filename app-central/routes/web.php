@@ -26,6 +26,8 @@ Route::get('/club', [\App\Http\Controllers\Admin\ClubController::class, 'index']
     ->middleware(['auth', 'verified'])->name('club');
 Route::post('/club', [\App\Http\Controllers\Admin\ClubController::class, 'store'])
     ->middleware(['auth', 'verified'])->name('club.store');
+Route::delete('/club/{member}', [\App\Http\Controllers\Admin\ClubController::class, 'destroy'])
+    ->middleware(['auth', 'verified'])->name('club.destroy');
 
 Route::get('/customers', [\App\Http\Controllers\Admin\CustomerController::class, 'index'])
     ->middleware(['auth', 'verified'])->name('customers.index');

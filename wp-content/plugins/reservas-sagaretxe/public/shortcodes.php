@@ -8,19 +8,9 @@ class RRM_Shortcodes {
 
     public static function init() {
         add_shortcode( 'restaurant_reservations', [ __CLASS__, 'render_reservation_form' ] );
-        add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enqueue_scripts' ] );
-    }
-
-    public static function enqueue_scripts() {
-        wp_register_script( 'rrm-reservation-form', RRM_PLUGIN_URL . 'public/assets/js/reservation-form.js', [], RRM_VERSION, true );
-        wp_localize_script( 'rrm-reservation-form', 'rrm_ajax', [
-            'rest_url' => esc_url_raw( rest_url() )
-        ]);
     }
 
     public static function render_reservation_form() {
-        wp_enqueue_script( 'rrm-reservation-form' );
-
         ob_start();
         ?>
         <div id="rrm-reservation-app" class="rrm-container" style="max-width: 600px; margin: 2rem auto; font-family: 'Inter', system-ui, sans-serif; background: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #f0f0f0;">
@@ -52,11 +42,11 @@ class RRM_Shortcodes {
                 </div>
                 <div class="rrm-form-group">
                     <label class="rrm-label">Adultos *</label>
-                    <input type="number" id="rrm-adults" class="rrm-input" min="1" max="20" value="2" required oninput="rrmUpdateTotal()">
+                    <input type="number" id="rrm-adults" class="rrm-input" min="1" max="20" value="2" required>
                 </div>
                 <div class="rrm-form-group">
                     <label class="rrm-label">Niños</label>
-                    <input type="number" id="rrm-children" class="rrm-input" min="0" max="10" value="0" oninput="rrmUpdateTotal()">
+                    <input type="number" id="rrm-children" class="rrm-input" min="0" max="10" value="0">
                 </div>
                 <div class="rrm-full" style="background:#f0f4ff;border:1px solid #c7d2fe;border-radius:8px;padding:10px 15px;display:flex;align-items:center;gap:8px;">
                     <span style="font-size:0.9rem;color:#4338ca;font-weight:600;">👥 Total de comensales:</span>
@@ -108,16 +98,164 @@ class RRM_Shortcodes {
 
             <div id="rrm-messages" style="margin-top: 20px; font-weight: bold; text-align: center; border-radius: 8px; padding: 10px; display: none;"></div>
         </div>
+
         <script>
+        (function() {
+            var API_BASE = 'https://app.sagaretxe.net/api';
+
             function rrmUpdateTotal() {
-                var adults = parseInt(document.getElementById('rrm-adults').value) || 0;
-                var children = parseInt(document.getElementById('rrm-children').value) || 0;
-                var total = adults + children;
-                var el = document.getElementById('rrm-total-guests');
-                if (el) el.textContent = total;
+                var a = document.getElementById('rrm-adults');
+                var c = document.getElementById('rrm-children');
+                var t = document.getElementById('rrm-total-guests');
+                if (a && c && t) t.textContent = (parseInt(a.value)||0) + (parseInt(c.value)||0);
             }
-            // Inicializar al cargar
-            document.addEventListener('DOMContentLoaded', function() { rrmUpdateTotal(); });
+
+            document.addEventListener('DOMContentLoaded', function() {
+                var btnSubmit = document.getElementById('rrm-btn-submit');
+                var messages = document.getElementById('rrm-messages');
+                var dateInput = document.getElementById('rrm-date');
+                var timeSelect = document.getElementById('rrm-time');
+                var adultsInput = document.getElementById('rrm-adults');
+                var childrenInput = document.getElementById('rrm-children');
+
+                if (!dateInput || !timeSelect || !btnSubmit || !messages) return;
+
+                if (adultsInput) adultsInput.addEventListener('input', rrmUpdateTotal);
+                if (childrenInput) childrenInput.addEventListener('input', rrmUpdateTotal);
+                rrmUpdateTotal();
+
+                dateInput.addEventListener('change', function() {
+                    var date = dateInput.value;
+                    if (!date) return;
+
+                    messages.innerHTML = '<span style="color:blue;">Comprobando disponibilidad...</span>';
+                    messages.style.display = 'block';
+                    btnSubmit.disabled = true;
+                    timeSelect.innerHTML = '<option value="">Cargando horas...</option>';
+                    timeSelect.disabled = true;
+
+                    fetch(API_BASE + '/schedules/availability?date=' + date)
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.available === false) {
+                            messages.innerHTML = '<span style="color:red;">El restaurante está cerrado en esta fecha' + (data.message ? ': ' + data.message : '') + '</span>';
+                            timeSelect.innerHTML = '<option value="">Cerrado</option>';
+                            return;
+                        }
+
+                        var allOptions = [];
+                        function addSlots(openStr, closeStr) {
+                            if (!openStr || !closeStr) return;
+                            var p1 = openStr.split(':'), p2 = closeStr.split(':');
+                            var cur = new Date(); cur.setHours(parseInt(p1[0]), parseInt(p1[1]), 0);
+                            var end = new Date(); end.setHours(parseInt(p2[0]), parseInt(p2[1]), 0);
+                            while (cur <= end) {
+                                var h = cur.getHours().toString().padStart(2,'0');
+                                var m = cur.getMinutes().toString().padStart(2,'0');
+                                allOptions.push(h+':'+m);
+                                cur.setMinutes(cur.getMinutes()+30);
+                            }
+                        }
+                        addSlots(data.open_time, data.close_time);
+                        addSlots(data.open_time_2, data.close_time_2);
+
+                        if (allOptions.length === 0) {
+                            messages.innerHTML = '<span style="color:red;">No hay horas disponibles para este día.</span>';
+                            timeSelect.innerHTML = '<option value="">Sin horas</option>';
+                            return;
+                        }
+
+                        timeSelect.innerHTML = '<option value="">Selecciona hora</option>';
+                        for (var i = 0; i < allOptions.length; i++) {
+                            var opt = document.createElement('option');
+                            opt.value = allOptions[i];
+                            opt.textContent = allOptions[i];
+                            timeSelect.appendChild(opt);
+                        }
+                        timeSelect.disabled = false;
+                        messages.innerHTML = '<span style="color:green;">Fecha disponible. Selecciona una hora.</span>';
+                        btnSubmit.disabled = false;
+                    })
+                    .catch(function(err) {
+                        messages.innerHTML = '<span style="color:red;">Error comprobando disponibilidad.</span>';
+                        console.error('RRM Error:', err);
+                    });
+                });
+
+                var form = document.getElementById('rrm-step-1');
+                if (form) {
+                    form.addEventListener('submit', function(e) {
+                        e.preventDefault();
+
+                        var date = dateInput.value;
+                        var time = timeSelect.value;
+                        var adults = parseInt(adultsInput.value) || 0;
+                        var children = parseInt(childrenInput.value) || 0;
+                        var name = document.getElementById('rrm-name').value;
+                        var email = document.getElementById('rrm-email').value;
+                        var phone = document.getElementById('rrm-phone').value;
+                        var notes = document.getElementById('rrm-notes') ? document.getElementById('rrm-notes').value : '';
+
+                        if (!date || !time || adults < 1 || !name || !email || !phone) {
+                            messages.innerHTML = '<span style="color:red;">Por favor, completa todos los campos requeridos (mínimo 1 adulto).</span>';
+                            messages.style.display = 'block';
+                            return;
+                        }
+
+                        btnSubmit.disabled = true;
+                        btnSubmit.innerText = 'Procesando...';
+                        messages.innerHTML = '';
+                        messages.style.display = 'none';
+
+                        fetch(API_BASE + '/reservations', {
+                            method: 'POST',
+                            headers: {'Content-Type':'application/json','Accept':'application/json'},
+                            body: JSON.stringify({
+                                date: date+' '+time+':00',
+                                people: adults+children,
+                                adults: adults,
+                                children: children,
+                                name: name,
+                                email: email,
+                                phone: phone,
+                                notes: notes,
+                                allergies: document.getElementById('rrm-allergies') ? document.getElementById('rrm-allergies').checked : false,
+                                celiac: document.getElementById('rrm-celiac') ? document.getElementById('rrm-celiac').checked : false,
+                                strollers: document.getElementById('rrm-strollers') ? document.getElementById('rrm-strollers').checked : false,
+                                reduced_mobility: document.getElementById('rrm-reduced-mobility') ? document.getElementById('rrm-reduced-mobility').checked : false,
+                                wheelchairs: document.getElementById('rrm-wheelchairs') ? document.getElementById('rrm-wheelchairs').checked : false
+                            })
+                        })
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) {
+                            btnSubmit.disabled = false;
+                            btnSubmit.innerText = 'Confirmar Reserva';
+                            messages.style.display = 'block';
+
+                            if (data.reservation_id) {
+                                var msg = '<span style="color:green;">¡Reserva confirmada con éxito! Revisa tu email.</span>';
+                                if (data.discount_applied) {
+                                    msg += '<br><span style="color:green;"><strong>¡PERTENECES AL CLUB SAGARETXE! Recuerda indicarlo para que te apliquemos tu descuento.</strong></span>';
+                                }
+                                messages.innerHTML = msg;
+                                form.style.display = 'none';
+                            } else if (data.message) {
+                                messages.innerHTML = '<span style="color:red;">Error: ' + data.message + '</span>';
+                            } else {
+                                messages.innerHTML = '<span style="color:red;">Ha ocurrido un error inesperado.</span>';
+                            }
+                        })
+                        .catch(function(err) {
+                            btnSubmit.disabled = false;
+                            btnSubmit.innerText = 'Confirmar Reserva';
+                            messages.style.display = 'block';
+                            messages.innerHTML = '<span style="color:red;">Error de conexión con el servidor.</span>';
+                            console.error('RRM Error:', err);
+                        });
+                    });
+                }
+            });
+        })();
         </script>
         <?php
         return ob_get_clean();
