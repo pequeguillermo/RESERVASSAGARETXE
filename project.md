@@ -1,63 +1,15 @@
-# Reservas Sagaretxe
+# Proyecto Reservas Sagaretxe
 
-## Interacciones
+**Servicios locales:**
+- Laravel API / Backend: `c:\xampp\php\php.exe artisan serve --port=8080` (IMPORTANTE: Verificar SIEMPRE el estado con command_status)
+- Vite (Frontend assets): `npm run dev` activo en segundo plano (IMPORTANTE: Verificar SIEMPRE el estado con command_status)
 
-### 2026-05-12
-- **Levantamiento de servicios:**
-  - App Central Backend (API): Levantado en `http://127.0.0.1:8000`
-  - Frontend Vue (Vite): Levantado en `http://localhost:5174`
-  - WordPress / XAMPP: Disponible en `http://localhost/RESERVASSAGARETXE`
-- **Despliegue en Coolify:**
-  - Se ha solucionado el error 502 Bad Gateway en Coolify ajustando el comando de inicio de Laravel a `php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000`.
-  - Se han corregido los errores de Mixed Content añadiendo las variables de entorno `APP_URL`, `ASSET_URL` y `FORCE_HTTPS`.
-  - Se ha modificado `web.php` para que la raíz `/` redirija al `dashboard` y al login, en vez de mostrar la página de bienvenida de Laravel.
-  - La aplicación ya es visible correctamente en `https://app.sagaretxe.net`.
-- **Migración y Conexión de Plugins:**
-  - Se ha creado una migración `2026_05_12_062548_create_admin_user.php` para generar automáticamente el usuario administrador (`admin@sagaretxe.com`) en la base de datos de producción durante el próximo despliegue.
-  - Se han actualizado los plugins `reservas-sagaretxe` y `sagaretxe-club` para que sus peticiones apunten a la API de producción (`https://app.sagaretxe.net/api/...`) en lugar de a `127.0.0.1`.
-### 2026-05-11
-- **Levantamiento de servicios:**
-  - App Central Backend (API): Levantado en `http://127.0.0.1:8000`
-  - Frontend Vue (Vite): Levantado en `http://localhost:5173`
-  - WordPress / XAMPP: Disponible en `http://localhost/RESERVASSAGARETXE`
-- **Desarrollo:**
-  - Se ha añadido la funcionalidad de crear excepciones de horario **"Permanentes"** (aplicables todos los años) o **"Puntuales"**.
-  - Se han añadido 4 botones rápidos en la pestaña de Libro de Reservas para que los empleados puedan **"Cerrar Hoy"** o **"Cerrar Mañana"** (turnos de mañana y tarde) en un clic, creando excepciones puntuales de forma automatizada.
-
-
-### 2026-05-10
-- **Levantamiento de servicios:**
-  - App Central Backend (API): Levantado en `http://127.0.0.1:8000`
-  - Frontend Vue (Vite): Levantado en `http://localhost:5175`
-  - WordPress / XAMPP: Disponible en `http://localhost/RESERVASSAGARETXE`
-- **Planificación:** Elaborando plan de desarrollo para agregar nuevos campos de perfil al Club Sagaretxe, optimización de solapamiento de horarios y nueva gestión de correos electrónicos.
-- **Rediseño UI/UX y Expansión Emails:**
-  - **Vue (Reservas y Club):** Añadido menú horizontal para dividir plantillas, cabecera y footer de los correos automáticos. Añadidos los campos de "Desde Nombre" y "Desde Email", además del Asunto de todos los correos. Corregido el flex-box del Horario General en Reservas. Añadida la pestaña "Redirecciones" para definir URLs de confirmación/cancelación personalizadas.
-  - **Plugins WP:** Rediseñado por completo el shortcode de reservas de mesa (ahora moderno, con grid layout). Rediseñado y ampliado el shortcode del Club Sagaretxe para incluir todos los campos del perfil extendido (DNI, Dirección, Preferencias).
-
-### 2026-05-07
-- **Reactivación de Servicios:**
-  - App Central Backend (API): Levantado en `http://127.0.0.1:8000`
-  - Frontend Vue (Vite): Levantado en `http://localhost:5174` (puerto 5173 estaba ocupado)
-  - WordPress / XAMPP: Disponible en `http://localhost/RESERVASSAGARETXE`
-
-
-### 2026-05-06
-- **Nueva Arquitectura:** Se ha implementado la aplicación central (Laravel + Vue 3 + Inertia) que concentra toda la lógica de negocio (miembros, reservas, validaciones, PWA móvil para empleados).
-- **Refactorización de WordPress:** Los plugins de WP se han adaptado como clientes API. Se limpió el plugin de reservas (ahora es solo frontend) y se creó un nuevo plugin `sagaretxe-club`.
-- **Servicios Locales (Activos):**
-  - App Central Backend (API): `http://127.0.0.1:8000`
-  - Frontend Vue (PWA Empleados): `http://localhost:5173` (Accesible a través de Vite) o `http://127.0.0.1:8000/dashboard` (Compilado)
-  - Base de datos MySQL: `sagaretxe_app`
-
-### 2026-04-27
-- **Ajustes de Emails:** Se crearon las vistas para configurar las plantillas de email (Asunto y cuerpo).
-- **Flujo de correos:** 
-  - Al realizar reserva se envía correo con enlaces para confirmar y cancelar.
-  - Cronjob configurado para enviar recordatorios a falta de 12 horas y 6 horas.
-  - Cronjob configurado para pedir reseñas 24 horas después de la cita.
-- **Nuevos estados:** Se añadieron los estados `confirmada_cliente` y `cancelada_cliente` que se aplican automáticamente cuando el usuario interactúa con los links del correo, reflejándose visualmente (verde/rojo) en la lista de reservas.
-- **Plano de sala:** Se ha modificado el sistema de mesas Drag&Drop (Sala) para permitir crear mesas redondas, modificando el CSS, JS y el guardado en base de datos. Se ha reemplazado el sistema de ventanas emergentes nativas (prompt/confirm) por un modal HTML personalizado para introducir nombre, capacidad y forma. También se ha incorporado la capacidad de hacer doble clic sobre una mesa existente para editar sus propiedades o eliminarla (incluso desasignándola de reservas existentes si se borra).
-- **Servidor Local:** Proyecto disponible en `http://localhost/RESERVASSAGARETXE` (puerto 80 por defecto en XAMPP).
-- Correcci�n de Bug: Actualizado el endpoint de la API MemberController@store para procesar y guardar todos los campos del perfil (direcci�n, dni, preferencias) enviados desde el formulario de WordPress.
-- Mejora UI: El formulario de 'Horario General' ahora ocupa todo el ancho de la pantalla (fullpage) tras quitar el l�mite de ancho m�ximo (max-w-3xl).
+**Resumen de la última iteración:**
+- Se ha implementado la creación manual de reservas desde el administrador, incluyendo el desglose de adultos/niños y los metadatos especiales (alergias, celíacos, movilidad reducida, etc.).
+- Se ha implementado la gestión y creación manual de miembros del Club Sagaretxe usando el mismo modal de edición/creación.
+- Se ha configurado el sistema de roles (`superadmin` y `admin`), protegiendo las pestañas de Configuración de Correo y Usuarios para que solo el Superadmin tenga acceso.
+- Se ha creado la pestaña de "Usuarios" (superadmin) para dar de alta/baja a los administradores del restaurante con sus códigos de acceso.
+- Se ha implementado el límite de comensales (`max_diners`). Al "Cerrar Hoy/Mañana" o al crear una excepción, ahora el sistema te pregunta si quieres dejar un máximo de comensales abierto. Si ese límite se alcanza, la API ya no aceptará más reservas.
+- Se ha modificado el listado de Excepciones para que las excepciones puntuales pasadas desaparezcan automáticamente al día siguiente, evitando que se acumulen en el panel de administrador.
+- Se han ajustado los campos del formulario del **Club Sagaretxe**, eliminando DNI, Dirección y Fecha de Nacimiento, y haciendo obligatorios el resto de datos de contacto y preferencias.
+- Se ha creado una **nueva sección "Clientes"**, separada de reservas y club, para registrar rápidamente contactos de forma opcional (Nombre, Teléfono, Email).

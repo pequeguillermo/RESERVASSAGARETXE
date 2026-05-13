@@ -11,6 +11,11 @@ use Inertia\Inertia;
 
 class SettingsController extends Controller
 {
+    public function __construct()
+    {
+        // Solo superadmin puede acceder a la configuración de correos y horarios
+    }
+
     public function index()
     {
         $settings = Setting::all()->pluck('value', 'key');
@@ -24,7 +29,10 @@ class SettingsController extends Controller
             $schedules = Schedule::orderBy('day_of_week')->get();
         }
 
-        $specialSchedules = SpecialSchedule::orderBy('date', 'desc')->get();
+        $specialSchedules = SpecialSchedule::where(function($query) {
+            $query->where('date', '>=', now()->toDateString())
+                  ->orWhere('is_permanent', true);
+        })->orderBy('date', 'desc')->get();
 
         return Inertia::render('Settings', [
             'settings' => $settings,
@@ -64,7 +72,8 @@ class SettingsController extends Controller
             'is_closed' => 'boolean',
             'is_permanent' => 'boolean',
             'close_morning' => 'boolean',
-            'close_afternoon' => 'boolean'
+            'close_afternoon' => 'boolean',
+            'max_diners' => 'nullable|integer|min:0'
         ]);
 
         $dateObj = \Carbon\Carbon::parse($validated['date']);
@@ -84,6 +93,17 @@ class SettingsController extends Controller
             $data['is_closed'] = true;
         }
 
+        if (isset($validated['max_diners'])) {
+            $data['max_diners'] = $validated['max_diners'] > 0 ? $validated['max_diners'] : null;
+            if ($data['max_diners'] > 0) {
+                // Si permitimos comensales, forzamos a que no esté 100% cerrado internamente
+                // O podemos mantener is_closed = true y la API comprueba max_diners.
+                // En el plan dijimos is_closed = true y API verifica max_diners.
+            } else if ($validated['max_diners'] === 0) {
+                $data['is_closed'] = true;
+            }
+        }
+
         SpecialSchedule::updateOrCreate(['date' => $validated['date']], $data);
 
         return redirect()->back()->with('success', 'Día especial guardado');
@@ -99,7 +119,8 @@ class SettingsController extends Controller
     {
         $validated = $request->validate([
             'date' => 'required|date',
-            'shift' => 'required|in:morning,afternoon'
+            'shift' => 'required|in:morning,afternoon',
+            'max_diners' => 'nullable|integer|min:0'
         ]);
         
         $special = SpecialSchedule::where('date', $validated['date'])->first();
@@ -129,6 +150,13 @@ class SettingsController extends Controller
         
         if (empty($special->open_time) && empty($special->close_time) && empty($special->open_time_2) && empty($special->close_time_2)) {
             $special->is_closed = true;
+        }
+
+        if (isset($validated['max_diners'])) {
+            $special->max_diners = $validated['max_diners'] > 0 ? $validated['max_diners'] : null;
+            if ($validated['max_diners'] === 0) {
+                $special->is_closed = true;
+            }
         }
         
         $special->save();

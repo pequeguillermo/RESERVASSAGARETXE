@@ -95,20 +95,20 @@ const searchPhone = async () => {
 // MODAL LÓGICA
 const showModal = ref(false);
 const editMemberId = ref(null);
+const isCreating = ref(false);
 const editForm = useForm({
-    name: '', surname: '', dni: '', postal_code: '', birth_date: '', address: '',
+    name: '', surname: '', postal_code: '',
     phone: '', email: '', pref_space: '', pref_food: '', pref_drink1: '',
     pref_drink2: '', pref_time: '', how_knew_us: '', active: true,
 });
 
-const openEditModal = (member) => {
-    editMemberId.value = member.id;
-    editForm.name = member.name || '';
+const openEditModal = (member = null) => {
+    if (member) {
+        isCreating.value = false;
+        editMemberId.value = member.id;
+        editForm.name = member.name || '';
     editForm.surname = member.surname || '';
-    editForm.dni = member.dni || '';
     editForm.postal_code = member.postal_code || '';
-    editForm.birth_date = member.birth_date || '';
-    editForm.address = member.address || '';
     editForm.phone = member.phone || '';
     editForm.email = member.email || '';
     editForm.pref_space = member.pref_space || '';
@@ -117,6 +117,11 @@ const openEditModal = (member) => {
     editForm.pref_drink2 = member.pref_drink2 || '';
     editForm.pref_time = member.pref_time || '';
     editForm.how_knew_us = member.how_knew_us || '';
+    } else {
+        isCreating.value = true;
+        editMemberId.value = null;
+        editForm.reset();
+    }
     showModal.value = true;
 };
 
@@ -126,9 +131,15 @@ const closeEditModal = () => {
 };
 
 const saveMember = () => {
-    editForm.put(`/api/members/${editMemberId.value}`, {
-        onSuccess: () => closeEditModal()
-    });
+    if (isCreating.value) {
+        editForm.post(route('club.store'), {
+            onSuccess: () => closeEditModal()
+        });
+    } else {
+        editForm.put(`/api/members/${editMemberId.value}`, {
+            onSuccess: () => closeEditModal()
+        });
+    }
 };
 
 const activeTab = ref('miembros'); // 'miembros', 'emails'
@@ -162,8 +173,7 @@ const saveEmails = () => {
                 <h2 class="text-3xl font-extrabold leading-tight text-gray-900 tracking-tight">
                     Club Sagaretxe
                 </h2>
-                <!-- Pestañas Horizontales para Club -->
-                <nav class="flex space-x-4 bg-white p-1 rounded-xl shadow-sm border border-gray-100">
+                <nav v-if="$page.props.auth.user.role === 'superadmin'" class="flex space-x-4 bg-white p-1 rounded-xl shadow-sm border border-gray-100">
                     <button @click="activeTab = 'miembros'" :class="activeTab === 'miembros' ? 'bg-indigo-600 text-white shadow' : 'text-gray-500 hover:text-gray-700'" class="px-5 py-2 rounded-lg font-bold text-sm transition-all">Directorio y Acceso</button>
                     <button @click="activeTab = 'emails'" :class="activeTab === 'emails' ? 'bg-indigo-600 text-white shadow' : 'text-gray-500 hover:text-gray-700'" class="px-5 py-2 rounded-lg font-bold text-sm transition-all">Emails Automáticos</button>
                 </nav>
@@ -228,6 +238,9 @@ const saveEmails = () => {
                             <div>
                                 <h3 class="text-xl font-extrabold text-gray-900">Directorio de Miembros</h3>
                                 <p class="text-sm text-gray-500 mt-1">Listado completo de clientes registrados en el club.</p>
+                                <button @click="openEditModal()" class="mt-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2 px-4 rounded-lg shadow transition-colors">
+                                    + Nuevo Miembro Manual
+                                </button>
                             </div>
                             <div class="bg-indigo-100 text-indigo-800 text-sm font-bold px-4 py-2 rounded-full shadow-sm flex items-center border border-indigo-200">
                                 {{ members.length }} Miembros
@@ -358,7 +371,7 @@ const saveEmails = () => {
         <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900 bg-opacity-75 overflow-y-auto">
             <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full mx-auto my-8 border border-gray-200 overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
                 <div class="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
-                    <h3 class="text-2xl font-bold text-gray-900">Perfil del Miembro</h3>
+                    <h3 class="text-2xl font-bold text-gray-900">{{ isCreating ? 'Nuevo Miembro del Club' : 'Perfil del Miembro' }}</h3>
                     <button @click="closeEditModal" class="text-gray-400 hover:text-gray-600 focus:outline-none">
                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
@@ -368,32 +381,29 @@ const saveEmails = () => {
                     <form @submit.prevent="saveMember" class="space-y-6">
                         <h4 class="text-lg font-bold text-gray-700 border-b pb-2">Información Personal</h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div><label class="block text-sm font-bold text-gray-700">Nombre</label><input type="text" v-model="editForm.name" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"></div>
-                            <div><label class="block text-sm font-bold text-gray-700">Apellidos</label><input type="text" v-model="editForm.surname" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"></div>
-                            <div><label class="block text-sm font-bold text-gray-700">DNI</label><input type="text" v-model="editForm.dni" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"></div>
-                            <div><label class="block text-sm font-bold text-gray-700">F. Nacimiento</label><input type="date" v-model="editForm.birth_date" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"></div>
-                            <div><label class="block text-sm font-bold text-gray-700">Teléfono (Móvil)</label><input type="tel" v-model="editForm.phone" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"></div>
-                            <div><label class="block text-sm font-bold text-gray-700">Email</label><input type="email" v-model="editForm.email" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"></div>
-                            <div><label class="block text-sm font-bold text-gray-700">Código Postal</label><input type="text" v-model="editForm.postal_code" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"></div>
-                            <div><label class="block text-sm font-bold text-gray-700">Dirección Física</label><input type="text" v-model="editForm.address" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"></div>
+                            <div><label class="block text-sm font-bold text-gray-700">Nombre <span class="text-red-500">*</span></label><input type="text" v-model="editForm.name" required class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"></div>
+                            <div><label class="block text-sm font-bold text-gray-700">Apellidos <span class="text-red-500">*</span></label><input type="text" v-model="editForm.surname" required class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"></div>
+                            <div><label class="block text-sm font-bold text-gray-700">Teléfono (Móvil) <span class="text-red-500">*</span></label><input type="tel" v-model="editForm.phone" required class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"></div>
+                            <div><label class="block text-sm font-bold text-gray-700">Email <span class="text-red-500">*</span></label><input type="email" v-model="editForm.email" required class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"></div>
+                            <div><label class="block text-sm font-bold text-gray-700">Código Postal <span class="text-red-500">*</span></label><input type="text" v-model="editForm.postal_code" required class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"></div>
                         </div>
 
                         <h4 class="text-lg font-bold text-gray-700 border-b pb-2 mt-8">Preferencias</h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div><label class="block text-sm font-bold text-gray-700">¿Barra o Sala?</label>
-                                <select v-model="editForm.pref_space" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"><option value="">Sin preferencia</option><option value="barra">Barra</option><option value="sala">Sala</option></select>
+                            <div><label class="block text-sm font-bold text-gray-700">¿Barra o Sala? <span class="text-red-500">*</span></label>
+                                <select v-model="editForm.pref_space" required class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"><option value="">Seleccione una opción</option><option value="barra">Barra</option><option value="sala">Sala</option></select>
                             </div>
-                            <div><label class="block text-sm font-bold text-gray-700">¿Carne o Pescado?</label>
-                                <select v-model="editForm.pref_food" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"><option value="">Sin preferencia</option><option value="carne">Carne</option><option value="pescado">Pescado</option></select>
+                            <div><label class="block text-sm font-bold text-gray-700">¿Carne o Pescado? <span class="text-red-500">*</span></label>
+                                <select v-model="editForm.pref_food" required class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"><option value="">Seleccione una opción</option><option value="carne">Carne</option><option value="pescado">Pescado</option></select>
                             </div>
-                            <div><label class="block text-sm font-bold text-gray-700">¿Cerveza o Sidra?</label>
-                                <select v-model="editForm.pref_drink1" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"><option value="">Sin preferencia</option><option value="cerveza">Cerveza</option><option value="sidra">Sidra</option></select>
+                            <div><label class="block text-sm font-bold text-gray-700">¿Cerveza o Sidra? <span class="text-red-500">*</span></label>
+                                <select v-model="editForm.pref_drink1" required class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"><option value="">Seleccione una opción</option><option value="cerveza">Cerveza</option><option value="sidra">Sidra</option></select>
                             </div>
-                            <div><label class="block text-sm font-bold text-gray-700">¿Vino Tinto o Blanco?</label>
-                                <select v-model="editForm.pref_drink2" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"><option value="">Sin preferencia</option><option value="tinto">Vino Tinto</option><option value="blanco">Vino Blanco</option></select>
+                            <div><label class="block text-sm font-bold text-gray-700">¿Vino Tinto o Blanco? <span class="text-red-500">*</span></label>
+                                <select v-model="editForm.pref_drink2" required class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"><option value="">Seleccione una opción</option><option value="tinto">Vino Tinto</option><option value="blanco">Vino Blanco</option></select>
                             </div>
-                            <div><label class="block text-sm font-bold text-gray-700">¿Entre semana o fin de semana?</label>
-                                <select v-model="editForm.pref_time" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"><option value="">Sin preferencia</option><option value="semana">Entre semana</option><option value="finde">Fin de semana</option></select>
+                            <div><label class="block text-sm font-bold text-gray-700">¿Entre semana o fin de semana? <span class="text-red-500">*</span></label>
+                                <select v-model="editForm.pref_time" required class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"><option value="">Seleccione una opción</option><option value="semana">Entre semana</option><option value="finde">Fin de semana</option></select>
                             </div>
                             <div><label class="block text-sm font-bold text-gray-700">¿Cómo nos ha conocido?</label>
                                 <select v-model="editForm.how_knew_us" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-11"><option value="">Seleccione...</option><option value="prensa">Prensa</option><option value="tv">TV</option><option value="internet">Internet</option><option value="conocido">Por un conocido</option><option value="vecino">Vecino del barrio</option></select>

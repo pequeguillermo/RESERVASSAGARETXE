@@ -13,7 +13,8 @@ class SpecialSchedule extends Model
         'open_time_2',
         'close_time_2',
         'is_closed',
-        'is_permanent'
+        'is_permanent',
+        'max_diners'
     ];
 
     protected $casts = [

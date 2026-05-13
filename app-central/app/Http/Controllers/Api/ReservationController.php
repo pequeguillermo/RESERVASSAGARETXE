@@ -19,9 +19,38 @@ class ReservationController extends Controller
             'phone' => 'required|string|max:20',
             'date' => 'required|date',
             'people' => 'required|integer|min:1',
+            'adults' => 'nullable|integer|min:0',
+            'children' => 'nullable|integer|min:0',
             'notes' => 'nullable|string',
-            'email' => 'nullable|email'
+            'email' => 'nullable|email',
+            'allergies' => 'boolean',
+            'celiac' => 'boolean',
+            'strollers' => 'boolean',
+            'reduced_mobility' => 'boolean',
+            'wheelchairs' => 'boolean'
         ]);
+
+        $dateObj = \Carbon\Carbon::parse($request->date);
+        $dateStr = $dateObj->toDateString();
+        
+        $special = \App\Models\SpecialSchedule::where('date', $dateStr)->first();
+        if ($special && $special->is_closed) {
+            if ($special->max_diners > 0) {
+                $currentDiners = Reservation::whereDate('date', $dateStr)
+                    ->whereNotIn('status', ['cancelada_tlf', 'cancelada_mail'])
+                    ->sum('people');
+                
+                if (($currentDiners + $request->people) > $special->max_diners) {
+                    return response()->json([
+                        'message' => 'Lamentamos informar que para ese día solo aceptamos un máximo de ' . $special->max_diners . ' personas y se superaría el límite.',
+                    ], 422);
+                }
+            } else {
+                return response()->json([
+                    'message' => 'Lamentamos informar que estamos cerrados en la fecha/hora seleccionada.',
+                ], 422);
+            }
+        }
 
         $member = Member::where('phone', $request->phone)->first();
         $discountApplied = $member !== null;
@@ -33,6 +62,13 @@ class ReservationController extends Controller
             'phone' => $request->phone,
             'date' => $request->date,
             'people' => $request->people,
+            'adults' => $request->adults ?? 0,
+            'children' => $request->children ?? 0,
+            'allergies' => $request->allergies ?? false,
+            'celiac' => $request->celiac ?? false,
+            'strollers' => $request->strollers ?? false,
+            'reduced_mobility' => $request->reduced_mobility ?? false,
+            'wheelchairs' => $request->wheelchairs ?? false,
             'notes' => $request->notes,
             'discount_applied' => $discountApplied,
             'status' => 'pendiente'

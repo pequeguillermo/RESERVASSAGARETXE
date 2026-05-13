@@ -1,7 +1,13 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
+import Modal from '@/Components/Modal.vue';
+import InputLabel from '@/Components/InputLabel.vue';
+import TextInput from '@/Components/TextInput.vue';
+import InputError from '@/Components/InputError.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
 
 const props = defineProps({
     reservations: {
@@ -92,6 +98,50 @@ const cancelReservation = (id) => {
     }
 };
 
+// ---- NUEVA RESERVA MANUAL ----
+const isNewReservationModalOpen = ref(false);
+const newReservationForm = useForm({
+    name: '',
+    phone: '',
+    email: '',
+    date: '',
+    time: '',
+    people: 0,
+    adults: 0,
+    children: 0,
+    allergies: false,
+    celiac: false,
+    strollers: false,
+    reduced_mobility: false,
+    wheelchairs: false,
+    notes: ''
+});
+
+watch([() => newReservationForm.adults, () => newReservationForm.children], ([adults, children]) => {
+    newReservationForm.people = (parseInt(adults) || 0) + (parseInt(children) || 0);
+});
+
+const openNewReservationModal = () => {
+    newReservationForm.reset();
+    isNewReservationModalOpen.value = true;
+};
+
+const closeNewReservationModal = () => {
+    isNewReservationModalOpen.value = false;
+    newReservationForm.reset();
+};
+
+const submitNewReservation = () => {
+    const finalDate = newReservationForm.date + ' ' + newReservationForm.time + ':00';
+    newReservationForm.transform((data) => ({
+        ...data,
+        date: finalDate,
+    })).post(route('reservations.store'), {
+        preserveScroll: true,
+        onSuccess: () => closeNewReservationModal(),
+    });
+};
+
 // ---- ESTADO DE HORARIOS Y EMAILS ----
 const scheduleForm = useForm({
     schedules: props.schedules.map(s => ({
@@ -110,7 +160,8 @@ const specialForm = useForm({
     is_closed: false,
     is_permanent: false,
     close_morning: false,
-    close_afternoon: false
+    close_afternoon: false,
+    max_diners: ''
 });
 
 const emailForm = useForm({
@@ -139,12 +190,17 @@ const saveSchedules = () => {
 };
 
 const saveSpecial = () => {
-    specialForm.post(route('settings.special.store'), {
-        preserveScroll: true,
-        onSuccess: () => {
-            specialForm.reset();
-        }
-    });
+    const maxDiners = prompt(`¿Quieres poner un máximo de reserva para esta excepción?\nPor ejemplo, si pones 4, solo se podrá reservar hasta un máximo de 4 comensales y luego se cerrará.\n\nSi no quieres límite, déjalo en blanco o pon 0:`);
+    
+    if (maxDiners !== null) {
+        specialForm.max_diners = maxDiners ? parseInt(maxDiners) : 0;
+        specialForm.post(route('settings.special.store'), {
+            preserveScroll: true,
+            onSuccess: () => {
+                specialForm.reset();
+            }
+        });
+    }
 };
 
 const deleteSpecial = (id) => {
@@ -167,10 +223,13 @@ const quickClose = (dayOffset, shift) => {
     const localDate = new Date(targetDate.getTime() - offset);
     const dateStr = localDate.toISOString().split('T')[0];
     
-    if (confirm(`¿Estás seguro de que deseas cerrar el turno de ${shift === 'morning' ? 'mañana' : 'tarde'} para el ${dateStr}?`)) {
+    const maxDiners = prompt(`Vas a cerrar el turno de ${shift === 'morning' ? 'mañana' : 'tarde'} para el ${dateStr}.\n\nSi deseas dejar unas plazas libres (por ejemplo, 4), introduce el número. Si quieres cerrar completamente, déjalo en blanco o pon 0:`);
+    
+    if (maxDiners !== null) { // User didn't cancel
         router.post(route('settings.special.quick-close'), {
             date: dateStr,
-            shift: shift
+            shift: shift,
+            max_diners: maxDiners ? parseInt(maxDiners) : 0
         }, {
             preserveScroll: true
         });
@@ -236,7 +295,7 @@ const formatSpanishDate = (dateString) => {
                                     Excepciones
                                 </button>
                                 
-                                <button @click="activeTab = 'emails'" 
+                                <button v-if="$page.props.auth.user.role === 'superadmin'" @click="activeTab = 'emails'" 
                                     class="flex-1 sm:flex-none flex items-center justify-center px-4 py-2.5 rounded-xl transition-all duration-200 font-bold text-sm whitespace-nowrap"
                                     :class="activeTab === 'emails' ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'">
                                     <svg class="w-5 h-5 mr-2" :class="activeTab === 'emails' ? 'text-white' : 'text-gray-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
@@ -255,6 +314,9 @@ const formatSpanishDate = (dateString) => {
                                 <div>
                                     <h3 class="text-xl font-extrabold text-gray-900">Listado de Próximas Reservas</h3>
                                     <p class="text-sm text-gray-500 mt-1">Gestiona las asistencias y modificaciones de los clientes.</p>
+                                    <button @click="openNewReservationModal" class="mt-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded-lg shadow transition-colors">
+                                        + Nueva Reserva Manual
+                                    </button>
                                 </div>
                                 <div class="flex flex-col sm:flex-row gap-2 text-xs">
                                     <div class="flex gap-2">
@@ -504,7 +566,6 @@ const formatSpanishDate = (dateString) => {
                                                 </div>
                                             </label>
 
-                                            <!-- Excepción Permanente -->
                                             <label class="flex items-center justify-between px-4 py-3 rounded-xl border bg-white shadow-sm cursor-pointer transition-colors" :class="specialForm.is_permanent ? 'border-blue-400 bg-blue-50 hover:bg-blue-50' : 'border-gray-200 hover:bg-gray-50'">
                                                 <span class="text-sm font-bold" :class="specialForm.is_permanent ? 'text-blue-800' : 'text-gray-700'">Excepción Permanente</span>
                                                 <div class="relative inline-flex items-center ml-2">
@@ -544,8 +605,11 @@ const formatSpanishDate = (dateString) => {
                                                 <span v-else class="px-2.5 py-0.5 inline-flex text-[10px] leading-5 font-bold rounded bg-gray-100 text-gray-600 uppercase tracking-wider">Puntual</span>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <span v-if="special.is_closed" class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-red-100 text-red-800">Cerrado Completamente</span>
-                                                <span v-else class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-green-100 text-green-800">Horario Modificado</span>
+                                                <div class="flex flex-col space-y-1">
+                                                    <span v-if="special.is_closed" class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-red-100 text-red-800 w-max">Cerrado Completamente</span>
+                                                    <span v-else class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-green-100 text-green-800 w-max">Horario Modificado</span>
+                                                    <span v-if="special.max_diners > 0" class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-orange-100 text-orange-800 border border-orange-200 w-max">Máximo {{ special.max_diners }} comensales</span>
+                                                </div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
                                                 <div v-if="!special.is_closed" class="flex flex-col space-y-1">
@@ -677,6 +741,97 @@ const formatSpanishDate = (dateString) => {
 
             </div>
         </div>
+
+        <Modal :show="isNewReservationModalOpen" @close="closeNewReservationModal" maxWidth="2xl">
+            <div class="p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">Nueva Reserva Manual</h2>
+                
+                <form @submit.prevent="submitNewReservation" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <InputLabel for="name" value="Nombre del Cliente" />
+                            <TextInput id="name" type="text" class="mt-1 block w-full" v-model="newReservationForm.name" required />
+                            <InputError class="mt-2" :message="newReservationForm.errors.name" />
+                        </div>
+                        <div>
+                            <InputLabel for="phone" value="Teléfono" />
+                            <TextInput id="phone" type="text" class="mt-1 block w-full" v-model="newReservationForm.phone" required />
+                            <InputError class="mt-2" :message="newReservationForm.errors.phone" />
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <InputLabel for="date" value="Fecha" />
+                            <TextInput id="date" type="date" class="mt-1 block w-full" v-model="newReservationForm.date" required />
+                            <InputError class="mt-2" :message="newReservationForm.errors.date" />
+                        </div>
+                        <div>
+                            <InputLabel for="time" value="Hora" />
+                            <TextInput id="time" type="time" class="mt-1 block w-full" v-model="newReservationForm.time" required />
+                            <InputError class="mt-2" :message="newReservationForm.errors.time" />
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <InputLabel for="adults" value="Adultos" />
+                            <TextInput id="adults" type="number" min="0" class="mt-1 block w-full" v-model="newReservationForm.adults" />
+                            <InputError class="mt-2" :message="newReservationForm.errors.adults" />
+                        </div>
+                        <div>
+                            <InputLabel for="children" value="Niños" />
+                            <TextInput id="children" type="number" min="0" class="mt-1 block w-full" v-model="newReservationForm.children" />
+                            <InputError class="mt-2" :message="newReservationForm.errors.children" />
+                        </div>
+                        <div class="flex flex-col justify-end">
+                            <span class="text-sm font-bold text-gray-700 bg-gray-100 p-2 rounded text-center">
+                                Total Comensales: {{ newReservationForm.people }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <InputLabel value="Requerimientos Especiales" />
+                        <div class="mt-2 grid grid-cols-2 gap-2 text-sm text-gray-700">
+                            <label class="flex items-center">
+                                <input type="checkbox" v-model="newReservationForm.allergies" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 mr-2" />
+                                Alergias
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" v-model="newReservationForm.celiac" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 mr-2" />
+                                Celíaco
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" v-model="newReservationForm.strollers" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 mr-2" />
+                                Carritos de niño
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" v-model="newReservationForm.reduced_mobility" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 mr-2" />
+                                Movilidad Reducida
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" v-model="newReservationForm.wheelchairs" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 mr-2" />
+                                Sillas de ruedas
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <InputLabel for="notes" value="Notas u Observaciones" />
+                        <textarea id="notes" v-model="newReservationForm.notes" rows="3" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"></textarea>
+                    </div>
+
+                    <div class="mt-6 flex justify-end gap-3">
+                        <SecondaryButton @click="closeNewReservationModal">Cancelar</SecondaryButton>
+                        <PrimaryButton class="bg-blue-600 hover:bg-blue-700" :class="{ 'opacity-25': newReservationForm.processing }" :disabled="newReservationForm.processing">
+                            Crear Reserva
+                        </PrimaryButton>
+                    </div>
+                </form>
+            </div>
+        </Modal>
+
     </AuthenticatedLayout>
 </template>
 

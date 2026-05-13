@@ -6,6 +6,7 @@ Aquí tienes las credenciales para acceder al backoffice de la nueva aplicación
 
 - **URL de Acceso:** [http://127.0.0.1:8000/login](http://127.0.0.1:8000/login) (O a través de Vite en el puerto 5173)
 - **Usuario (Email):** admin@sagaretxe.com
-- **Contraseña:** Sagaretxe2026
+- **Contraseña Web:** Sagaretxe2026
+- **PIN de Acceso (Terminal/App):** 9999
 
-*Nota: Puedes crear nuevos empleados desde la base de datos o próximamente desde un panel de gestión si lo requieres.*
+*Nota: Puedes crear nuevos empleados desde el panel de "Usuarios" usando esta cuenta.*

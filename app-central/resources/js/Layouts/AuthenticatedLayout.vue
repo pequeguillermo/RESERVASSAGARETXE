@@ -50,10 +50,24 @@ const showingNavigationDropdown = ref(false);
                                     Club Sagaretxe
                                 </NavLink>
                                 <NavLink
+                                    :href="route('customers.index')"
+                                    :active="route().current('customers.*')"
+                                >
+                                    Clientes
+                                </NavLink>
+                                <NavLink
+                                    v-if="$page.props.auth.user.role === 'superadmin'"
                                     :href="route('settings.index')"
                                     :active="route().current('settings.index')"
                                 >
                                     Configuración
+                                </NavLink>
+                                <NavLink
+                                    v-if="$page.props.auth.user.role === 'superadmin'"
+                                    :href="route('users.index')"
+                                    :active="route().current('users.*')"
+                                >
+                                    Usuarios
                                 </NavLink>
                             </div>
                         </div>
@@ -175,10 +189,24 @@ const showingNavigationDropdown = ref(false);
                             Club Sagaretxe
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
+                            :href="route('customers.index')"
+                            :active="route().current('customers.*')"
+                        >
+                            Clientes
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            v-if="$page.props.auth.user.role === 'superadmin'"
                             :href="route('settings.index')"
                             :active="route().current('settings.index')"
                         >
                             Configuración
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            v-if="$page.props.auth.user.role === 'superadmin'"
+                            :href="route('users.index')"
+                            :active="route().current('users.*')"
+                        >
+                            Usuarios
                         </ResponsiveNavLink>
                     </div>
 
