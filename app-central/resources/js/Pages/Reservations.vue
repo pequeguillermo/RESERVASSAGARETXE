@@ -178,7 +178,10 @@ const emailForm = useForm({
     email_reminder_24h: props.settings.email_reminder_24h || 'Hola [nombre],\nTe recordamos tu reserva mañana. Si no vas a asistir, por favor cancela respondiendo a este correo.',
     email_feedback_24h: props.settings.email_feedback_24h || 'Hola [nombre],\n¿Qué tal estuvo tu experiencia? Déjanos una reseña en Google.',
     url_confirm_redirect: props.settings.url_confirm_redirect || '',
-    url_cancel_redirect: props.settings.url_cancel_redirect || ''
+    url_cancel_redirect: props.settings.url_cancel_redirect || '',
+    admin_email: props.settings.admin_email || '',
+    subject_admin_reservation: props.settings.subject_admin_reservation || '🔔 Nueva Reserva Recibida',
+    email_admin_reservation: props.settings.email_admin_reservation || 'Se ha recibido una nueva reserva:\n\nCliente: [nombre]\nFecha: [fecha]\nHora: [hora]\nComensales: [comensales]\nTeléfono: [telefono]\nEmail: [email]'
 });
 
 const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -653,6 +656,8 @@ const formatSpanishDate = (dateString) => {
                                 <span class="bg-white text-indigo-600 font-mono text-xs px-3 py-1 rounded-full font-bold border shadow-sm">[fecha]</span>
                                 <span class="bg-white text-indigo-600 font-mono text-xs px-3 py-1 rounded-full font-bold border shadow-sm">[hora]</span>
                                 <span class="bg-white text-indigo-600 font-mono text-xs px-3 py-1 rounded-full font-bold border shadow-sm">[comensales]</span>
+                                <span class="bg-white text-indigo-600 font-mono text-xs px-3 py-1 rounded-full font-bold border shadow-sm">[telefono]</span>
+                                <span class="bg-white text-indigo-600 font-mono text-xs px-3 py-1 rounded-full font-bold border shadow-sm">[email]</span>
                                 <span class="bg-white text-pink-600 font-mono text-xs px-3 py-1 rounded-full font-bold border shadow-sm">[confirmar]</span>
                                 <span class="bg-white text-pink-600 font-mono text-xs px-3 py-1 rounded-full font-bold border shadow-sm">[cancelar]</span>
                             </div>
@@ -693,6 +698,24 @@ const formatSpanishDate = (dateString) => {
                                         <label class="flex items-center text-sm font-extrabold text-gray-800 mb-3"><span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center mr-2">4</span> Feedback Google (24h después)</label>
                                         <input type="text" v-model="emailForm.subject_feedback" placeholder="Asunto del correo" class="w-full mb-3 rounded-lg border-gray-300 text-sm h-10 shadow-sm focus:ring-indigo-500">
                                         <textarea v-model="emailForm.email_feedback_24h" rows="5" class="w-full border-0 bg-gray-50 rounded-xl p-4 text-sm font-mono focus:ring-0 text-gray-700"></textarea>
+                                    </div>
+
+                                    <!-- Separador Admin -->
+                                    <div class="md:col-span-2 border-t-2 border-dashed border-orange-200 pt-6 mt-4">
+                                        <h4 class="text-lg font-extrabold text-orange-800 flex items-center mb-4">
+                                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                                            Notificaciones al Administrador
+                                        </h4>
+                                        <div class="bg-orange-50 border border-orange-100 p-4 rounded-xl mb-4">
+                                            <label class="block text-sm font-bold text-gray-700 mb-2">Email del Administrador (donde recibir avisos)</label>
+                                            <input type="email" v-model="emailForm.admin_email" placeholder="Ej: admin@sagaretxe.com" class="w-full rounded-xl border-gray-300 shadow-sm focus:ring-orange-500 focus:border-orange-500 h-11">
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-white border-2 border-orange-200 p-5 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-orange-400 transition-shadow">
+                                        <label class="flex items-center text-sm font-extrabold text-gray-800 mb-3"><span class="w-6 h-6 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center mr-2">📩</span> Aviso Admin: Nueva Reserva</label>
+                                        <input type="text" v-model="emailForm.subject_admin_reservation" placeholder="Asunto del correo" class="w-full mb-3 rounded-lg border-gray-300 text-sm h-10 shadow-sm focus:ring-orange-500">
+                                        <textarea v-model="emailForm.email_admin_reservation" rows="5" class="w-full border-0 bg-orange-50 rounded-xl p-4 text-sm font-mono focus:ring-0 text-gray-700"></textarea>
                                     </div>
                                 </div>
 

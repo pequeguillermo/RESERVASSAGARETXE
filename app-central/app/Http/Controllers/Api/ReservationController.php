@@ -83,6 +83,32 @@ class ReservationController extends Controller
             }
         }
 
+        // Notificación al administrador
+        $adminEmail = Setting::where('key', 'admin_email')->value('value');
+        if ($adminEmail) {
+            try {
+                $subjectTpl = Setting::where('key', 'subject_admin_reservation')->value('value') ?? '🔔 Nueva Reserva Recibida';
+                $bodyTpl = Setting::where('key', 'email_admin_reservation')->value('value') 
+                    ?? "Se ha recibido una nueva reserva:\n\nCliente: [nombre]\nFecha: [fecha]\nHora: [hora]\nComensales: [comensales]\nTeléfono: [telefono]\nEmail: [email]";
+
+                $dateObj2 = \Carbon\Carbon::parse($reservation->date);
+                $body = str_replace(
+                    ['[nombre]', '[fecha]', '[hora]', '[comensales]', '[telefono]', '[email]'],
+                    [$reservation->name, $dateObj2->format('d/m/Y'), $dateObj2->format('H:i'), $reservation->people, $reservation->phone, $reservation->email ?? '-'],
+                    $bodyTpl
+                );
+                $subject = str_replace(
+                    ['[nombre]', '[fecha]', '[hora]', '[comensales]'],
+                    [$reservation->name, $dateObj2->format('d/m/Y'), $dateObj2->format('H:i'), $reservation->people],
+                    $subjectTpl
+                );
+
+                Mail::to($adminEmail)->send(new \App\Mail\AdminNotification($subject, $body));
+            } catch (\Exception $e) {
+                \Log::error('Error sending admin notification: ' . $e->getMessage());
+            }
+        }
+
         return response()->json([
             'message' => 'Reserva creada con éxito',
             'reservation_id' => $reservation->id,

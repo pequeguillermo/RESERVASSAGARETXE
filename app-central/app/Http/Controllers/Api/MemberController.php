@@ -29,14 +29,43 @@ class MemberController extends Controller
         ]);
 
         $member = Member::where('phone', $request->phone)->first();
+        $isNew = false;
 
         if (!$member) {
             $validated['qr_token'] = Str::uuid()->toString();
             $validated['active'] = true;
             $member = Member::create($validated);
+            $isNew = true;
         } else {
             // Actualizar si ya existía para guardar los campos nuevos
             $member->update($validated);
+        }
+
+        // Notificación al administrador (solo para miembros nuevos)
+        if ($isNew) {
+            $adminEmail = \App\Models\Setting::where('key', 'club_admin_email')->value('value');
+            if ($adminEmail) {
+                try {
+                    $subjectTpl = \App\Models\Setting::where('key', 'club_subject_admin')->value('value') ?? '🎉 Nuevo Miembro del Club';
+                    $bodyTpl = \App\Models\Setting::where('key', 'club_email_admin')->value('value')
+                        ?? "Se ha registrado un nuevo miembro en el Club Sagaretxe:\n\nNombre: [nombre] [apellidos]\nTeléfono: [telefono]\nEmail: [email]\nCódigo Postal: [cp]";
+
+                    $body = str_replace(
+                        ['[nombre]', '[apellidos]', '[telefono]', '[email]', '[cp]'],
+                        [$member->name, $member->surname ?? '', $member->phone, $member->email ?? '-', $member->postal_code ?? '-'],
+                        $bodyTpl
+                    );
+                    $subject = str_replace(
+                        ['[nombre]', '[apellidos]'],
+                        [$member->name, $member->surname ?? ''],
+                        $subjectTpl
+                    );
+
+                    \Illuminate\Support\Facades\Mail::to($adminEmail)->send(new \App\Mail\AdminNotification($subject, $body));
+                } catch (\Exception $e) {
+                    \Log::error('Error sending club admin notification: ' . $e->getMessage());
+                }
+            }
         }
 
         return response()->json([

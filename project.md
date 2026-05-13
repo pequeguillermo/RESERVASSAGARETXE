@@ -13,3 +13,4 @@
 - Se ha modificado el listado de Excepciones para que las excepciones puntuales pasadas desaparezcan automáticamente al día siguiente, evitando que se acumulen en el panel de administrador.
 - Se han ajustado los campos del formulario del **Club Sagaretxe**, eliminando DNI, Dirección y Fecha de Nacimiento, y haciendo obligatorios el resto de datos de contacto y preferencias.
 - Se ha creado una **nueva sección "Clientes"**, separada de reservas y club, para registrar rápidamente contactos de forma opcional (Nombre, Teléfono, Email).
+- Se ha implementado un sistema de **notificaciones por email para el Administrador**. Ahora desde la interfaz (pestaña Configuración de Correos tanto en Reservas como en Club) se puede especificar un email de destino, asunto y cuerpo (con variables) para recibir un aviso automático cada vez que haya una nueva reserva o se registre un nuevo socio.
