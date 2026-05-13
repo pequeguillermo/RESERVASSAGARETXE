@@ -50,9 +50,17 @@ class RRM_Shortcodes {
                     <label class="rrm-label">Hora *</label>
                     <select id="rrm-time" class="rrm-input" required disabled><option value="">Selecciona fecha primero</option></select>
                 </div>
-                <div class="rrm-form-group rrm-full">
-                    <label class="rrm-label">Comensales *</label>
-                    <input type="number" id="rrm-guests" class="rrm-input" min="1" max="20" value="2" required>
+                <div class="rrm-form-group">
+                    <label class="rrm-label">Adultos *</label>
+                    <input type="number" id="rrm-adults" class="rrm-input" min="1" max="20" value="2" required oninput="rrmUpdateTotal()">
+                </div>
+                <div class="rrm-form-group">
+                    <label class="rrm-label">Niños</label>
+                    <input type="number" id="rrm-children" class="rrm-input" min="0" max="10" value="0" oninput="rrmUpdateTotal()">
+                </div>
+                <div class="rrm-full" style="background:#f0f4ff;border:1px solid #c7d2fe;border-radius:8px;padding:10px 15px;display:flex;align-items:center;gap:8px;">
+                    <span style="font-size:0.9rem;color:#4338ca;font-weight:600;">👥 Total de comensales:</span>
+                    <span id="rrm-total-guests" style="font-size:1.1rem;color:#4338ca;font-weight:800;">2</span>
                 </div>
                 <div class="rrm-form-group rrm-full">
                     <label class="rrm-label">Nombre Completo *</label>
@@ -66,9 +74,32 @@ class RRM_Shortcodes {
                     <label class="rrm-label">Teléfono *</label>
                     <input type="tel" id="rrm-phone" class="rrm-input" placeholder="600 000 000" required>
                 </div>
+
+                <!-- Necesidades especiales -->
                 <div class="rrm-form-group rrm-full">
-                    <label class="rrm-label">Notas (Opcional)</label>
-                    <textarea id="rrm-notes" class="rrm-input" rows="3" placeholder="Alergias, trona, preferencias..."></textarea>
+                    <label class="rrm-label" style="margin-bottom:8px;">Necesidades especiales</label>
+                    <div style="display:flex; flex-wrap:wrap; gap:12px;">
+                        <label style="display:flex;align-items:center;gap:6px;font-size:0.9rem;color:#374151;cursor:pointer;">
+                            <input type="checkbox" id="rrm-allergies" style="width:16px;height:16px;cursor:pointer;"> Alergias alimentarias
+                        </label>
+                        <label style="display:flex;align-items:center;gap:6px;font-size:0.9rem;color:#374151;cursor:pointer;">
+                            <input type="checkbox" id="rrm-celiac" style="width:16px;height:16px;cursor:pointer;"> Celíaco/a
+                        </label>
+                        <label style="display:flex;align-items:center;gap:6px;font-size:0.9rem;color:#374151;cursor:pointer;">
+                            <input type="checkbox" id="rrm-strollers" style="width:16px;height:16px;cursor:pointer;"> Carrito de bebé
+                        </label>
+                        <label style="display:flex;align-items:center;gap:6px;font-size:0.9rem;color:#374151;cursor:pointer;">
+                            <input type="checkbox" id="rrm-reduced-mobility" style="width:16px;height:16px;cursor:pointer;"> Movilidad reducida
+                        </label>
+                        <label style="display:flex;align-items:center;gap:6px;font-size:0.9rem;color:#374151;cursor:pointer;">
+                            <input type="checkbox" id="rrm-wheelchairs" style="width:16px;height:16px;cursor:pointer;"> Silla de ruedas
+                        </label>
+                    </div>
+                </div>
+
+                <div class="rrm-form-group rrm-full">
+                    <label class="rrm-label">Notas adicionales (Opcional)</label>
+                    <textarea id="rrm-notes" class="rrm-input" rows="3" placeholder="Celebración especial, preferencias de mesa..."></textarea>
                 </div>
                 <div class="rrm-full" style="margin-top: 10px;">
                     <button type="submit" id="rrm-btn-submit" class="rrm-btn">Confirmar Reserva</button>
@@ -78,7 +109,15 @@ class RRM_Shortcodes {
             <div id="rrm-messages" style="margin-top: 20px; font-weight: bold; text-align: center; border-radius: 8px; padding: 10px; display: none;"></div>
         </div>
         <script>
-            // JS handles everything, injected by wp_enqueue_script
+            function rrmUpdateTotal() {
+                var adults = parseInt(document.getElementById('rrm-adults').value) || 0;
+                var children = parseInt(document.getElementById('rrm-children').value) || 0;
+                var total = adults + children;
+                var el = document.getElementById('rrm-total-guests');
+                if (el) el.textContent = total;
+            }
+            // Inicializar al cargar
+            document.addEventListener('DOMContentLoaded', function() { rrmUpdateTotal(); });
         </script>
         <?php
         return ob_get_clean();

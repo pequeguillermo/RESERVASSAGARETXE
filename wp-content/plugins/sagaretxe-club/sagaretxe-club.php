@@ -79,69 +79,57 @@ function sc_render_club_form() {
                 <input type="text" id="sc-name" class="sc-input" required>
             </div>
             <div class="sc-form-group">
-                <label class="sc-label">Apellidos</label>
-                <input type="text" id="sc-surname" class="sc-input">
+                <label class="sc-label">Apellidos *</label>
+                <input type="text" id="sc-surname" class="sc-input" required>
             </div>
             <div class="sc-form-group">
                 <label class="sc-label">Teléfono *</label>
                 <input type="tel" id="sc-phone" class="sc-input" required>
             </div>
             <div class="sc-form-group">
-                <label class="sc-label">Email</label>
-                <input type="email" id="sc-email" class="sc-input">
+                <label class="sc-label">Email *</label>
+                <input type="email" id="sc-email" class="sc-input" required>
             </div>
             <div class="sc-form-group">
-                <label class="sc-label">DNI / NIE</label>
-                <input type="text" id="sc-dni" class="sc-input">
-            </div>
-            <div class="sc-form-group">
-                <label class="sc-label">Fecha de Nacimiento</label>
-                <input type="date" id="sc-birth-date" class="sc-input">
-            </div>
-            <div class="sc-form-group sc-full">
-                <label class="sc-label">Dirección Física</label>
-                <input type="text" id="sc-address" class="sc-input">
-            </div>
-            <div class="sc-form-group">
-                <label class="sc-label">Código Postal</label>
-                <input type="text" id="sc-postal-code" class="sc-input">
+                <label class="sc-label">Código Postal *</label>
+                <input type="text" id="sc-postal-code" class="sc-input" required>
             </div>
 
-            <h3 class="sc-section-title">Tus Preferencias (Opcional)</h3>
+            <h3 class="sc-section-title">Tus Preferencias *</h3>
             <div class="sc-form-group">
-                <label class="sc-label">¿Barra o Sala?</label>
-                <select id="sc-pref-space" class="sc-input">
-                    <option value="">Sin preferencia</option><option value="barra">Barra</option><option value="sala">Sala</option>
+                <label class="sc-label">¿Barra o Sala? *</label>
+                <select id="sc-pref-space" class="sc-input" required>
+                    <option value="">Selecciona...</option><option value="barra">Barra</option><option value="sala">Sala</option>
                 </select>
             </div>
             <div class="sc-form-group">
-                <label class="sc-label">¿Carne o Pescado?</label>
-                <select id="sc-pref-food" class="sc-input">
-                    <option value="">Sin preferencia</option><option value="carne">Carne</option><option value="pescado">Pescado</option>
+                <label class="sc-label">¿Carne o Pescado? *</label>
+                <select id="sc-pref-food" class="sc-input" required>
+                    <option value="">Selecciona...</option><option value="carne">Carne</option><option value="pescado">Pescado</option>
                 </select>
             </div>
             <div class="sc-form-group">
-                <label class="sc-label">¿Cerveza o Sidra?</label>
-                <select id="sc-pref-drink1" class="sc-input">
-                    <option value="">Sin preferencia</option><option value="cerveza">Cerveza</option><option value="sidra">Sidra</option>
+                <label class="sc-label">¿Cerveza o Sidra? *</label>
+                <select id="sc-pref-drink1" class="sc-input" required>
+                    <option value="">Selecciona...</option><option value="cerveza">Cerveza</option><option value="sidra">Sidra</option>
                 </select>
             </div>
             <div class="sc-form-group">
-                <label class="sc-label">¿Vino Tinto o Blanco?</label>
-                <select id="sc-pref-drink2" class="sc-input">
-                    <option value="">Sin preferencia</option><option value="tinto">Vino Tinto</option><option value="blanco">Vino Blanco</option>
+                <label class="sc-label">¿Vino Tinto o Blanco? *</label>
+                <select id="sc-pref-drink2" class="sc-input" required>
+                    <option value="">Selecciona...</option><option value="tinto">Vino Tinto</option><option value="blanco">Vino Blanco</option>
                 </select>
             </div>
             <div class="sc-form-group">
-                <label class="sc-label">¿Entre semana o fin de semana?</label>
-                <select id="sc-pref-time" class="sc-input">
-                    <option value="">Sin preferencia</option><option value="semana">Entre semana</option><option value="finde">Fin de semana</option>
+                <label class="sc-label">¿Entre semana o fin de semana? *</label>
+                <select id="sc-pref-time" class="sc-input" required>
+                    <option value="">Selecciona...</option><option value="semana">Entre semana</option><option value="finde">Fin de semana</option>
                 </select>
             </div>
             <div class="sc-form-group">
-                <label class="sc-label">¿Cómo nos ha conocido?</label>
-                <select id="sc-how-knew-us" class="sc-input">
-                    <option value="">Seleccione...</option><option value="prensa">Prensa</option><option value="tv">TV</option><option value="internet">Internet</option><option value="conocido">Por un conocido</option><option value="vecino">Vecino del barrio</option>
+                <label class="sc-label">¿Cómo nos ha conocido? *</label>
+                <select id="sc-how-knew-us" class="sc-input" required>
+                    <option value="">Selecciona...</option><option value="prensa">Prensa</option><option value="tv">TV</option><option value="internet">Internet</option><option value="conocido">Por un conocido</option><option value="vecino">Vecino del barrio</option>
                 </select>
             </div>
             
@@ -168,9 +156,6 @@ function sc_render_club_form() {
                     surname: document.getElementById('sc-surname').value,
                     phone: document.getElementById('sc-phone').value,
                     email: document.getElementById('sc-email').value,
-                    dni: document.getElementById('sc-dni').value,
-                    birth_date: document.getElementById('sc-birth-date').value,
-                    address: document.getElementById('sc-address').value,
                     postal_code: document.getElementById('sc-postal-code').value,
                     pref_space: document.getElementById('sc-pref-space').value,
                     pref_food: document.getElementById('sc-pref-food').value,
