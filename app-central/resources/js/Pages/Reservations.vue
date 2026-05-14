@@ -343,26 +343,28 @@ const formatSpanishDate = (dateString) => {
                             
                             <div class="flex-1 overflow-x-auto p-4">
                                 <div class="border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-                                    <table class="min-w-full divide-y divide-gray-200">
-                                        <thead class="bg-gray-50">
+                                    <table class="min-w-full divide-y divide-gray-200 block md:table">
+                                        <thead class="bg-gray-50 hidden md:table-header-group">
                                             <tr>
                                                 <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha y Hora</th>
                                                 <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Cliente / Stats</th>
-                                                <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Pax</th>
+                                                <th scope="col" class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Pax</th>
                                                 <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Estado</th>
                                                 <th scope="col" class="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Acciones</th>
                                             </tr>
                                         </thead>
-                                        <tbody class="bg-white divide-y divide-gray-200">
+                                        <tbody class="bg-white divide-y divide-gray-200 block md:table-row-group">
                                             <tr v-for="reservation in formattedReservations" :key="reservation.id" 
-                                                class="transition-colors duration-150"
+                                                class="block md:table-row transition-colors duration-150 border-b border-gray-200 md:border-none p-4 md:p-0"
                                                 :class="reservation.hasCancellations ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-blue-50'">
                                                 
-                                                <td class="px-6 py-4 whitespace-nowrap">
-                                                    <div v-if="editingReservation !== reservation.id">
+                                                <td class="block md:table-cell px-2 py-2 md:px-6 md:py-4 whitespace-nowrap">
+                                                    <div class="md:hidden text-xs font-bold text-gray-400 mb-1 uppercase tracking-wider">Fecha y Hora</div>
+                                                    <div v-if="editingReservation !== reservation.id" class="flex md:block items-center gap-2 md:gap-0">
                                                         <div class="text-sm font-bold text-gray-900 capitalize">{{ reservation.formattedDate }}</div>
-                                                        <div class="text-sm text-gray-500 flex items-center mt-1">
-                                                            <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                        <div class="text-sm text-gray-500 flex items-center md:mt-1">
+                                                            <svg class="w-4 h-4 mr-1 text-gray-400 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                            <span class="md:hidden font-medium text-gray-400 mr-1">-</span>
                                                             {{ reservation.formattedTime }}
                                                         </div>
                                                     </div>
@@ -372,7 +374,8 @@ const formatSpanishDate = (dateString) => {
                                                     </div>
                                                 </td>
 
-                                                <td class="px-6 py-4">
+                                                <td class="block md:table-cell px-2 py-2 md:px-6 md:py-4">
+                                                    <div class="md:hidden text-xs font-bold text-gray-400 mb-1 uppercase tracking-wider mt-2 md:mt-0">Cliente</div>
                                                     <div class="text-sm font-semibold" :class="reservation.hasCancellations ? 'text-red-700' : 'text-gray-900'">
                                                         {{ reservation.name }} 
                                                         <span v-if="reservation.member" class="ml-2 text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">Socio</span>
@@ -391,7 +394,8 @@ const formatSpanishDate = (dateString) => {
                                                     </div>
                                                 </td>
 
-                                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                                <td class="block md:table-cell px-2 py-2 md:px-6 md:py-4 md:whitespace-nowrap md:text-center">
+                                                    <div class="md:hidden text-xs font-bold text-gray-400 mb-1 uppercase tracking-wider mt-2 md:mt-0">Comensales</div>
                                                     <div v-if="editingReservation !== reservation.id">
                                                         <span class="px-3 py-1 inline-flex text-sm leading-5 font-bold rounded-full bg-blue-100 text-blue-800 border border-blue-200">
                                                             {{ reservation.people }}
@@ -402,7 +406,8 @@ const formatSpanishDate = (dateString) => {
                                                     </div>
                                                 </td>
                                                 
-                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                <td class="block md:table-cell px-2 py-2 md:px-6 md:py-4 md:whitespace-nowrap">
+                                                    <div class="md:hidden text-xs font-bold text-gray-400 mb-1 uppercase tracking-wider mt-2 md:mt-0">Estado</div>
                                                     <div v-if="editingReservation !== reservation.id">
                                                         <span v-if="reservation.computedStatus === 'confirmada' || reservation.computedStatus === 'confirmed'" class="px-3 py-1.5 inline-flex text-xs leading-5 font-bold rounded-full bg-green-100 text-green-800 border border-green-200 shadow-sm">
                                                             <span class="w-1.5 h-1.5 rounded-full bg-green-600 mr-1.5 my-auto"></span> Confirmada
@@ -433,25 +438,28 @@ const formatSpanishDate = (dateString) => {
                                                     </div>
                                                 </td>
 
-                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <div v-if="editingReservation !== reservation.id && reservation.computedStatus !== 'realizada'" class="flex justify-end space-x-3">
-                                                        <button @click="startEdit(reservation)" class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 p-2 rounded-lg transition-colors" title="Editar Reserva">
-                                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                                <td class="block md:table-cell px-2 py-4 md:px-6 md:py-4 md:whitespace-nowrap text-left md:text-right text-sm font-medium">
+                                                    <div class="md:hidden text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider mt-2 md:mt-0">Acciones</div>
+                                                    <div v-if="editingReservation !== reservation.id && reservation.computedStatus !== 'realizada'" class="flex md:justify-end space-x-3">
+                                                        <button @click="startEdit(reservation)" class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 p-2 rounded-lg transition-colors flex-1 md:flex-none justify-center flex" title="Editar Reserva">
+                                                            <svg class="w-5 h-5 md:mr-0 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                                            <span class="md:hidden">Editar</span>
                                                         </button>
-                                                        <button @click="cancelReservation(reservation.id)" class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition-colors" title="Cancelar Reserva">
-                                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                        <button @click="cancelReservation(reservation.id)" class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition-colors flex-1 md:flex-none justify-center flex" title="Cancelar Reserva">
+                                                            <svg class="w-5 h-5 md:mr-0 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                            <span class="md:hidden">Cancelar</span>
                                                         </button>
                                                     </div>
-                                                    <div v-else-if="editingReservation === reservation.id" class="flex flex-col space-y-2 justify-end">
-                                                        <button @click="saveEdit(reservation.id)" class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1.5 rounded shadow-sm font-bold flex items-center justify-center">
+                                                    <div v-else-if="editingReservation === reservation.id" class="flex flex-row md:flex-col gap-2 justify-start md:justify-end">
+                                                        <button @click="saveEdit(reservation.id)" class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-2 md:py-1.5 rounded shadow-sm font-bold flex items-center justify-center flex-1 md:flex-none">
                                                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Guardar
                                                         </button>
-                                                        <button @click="cancelEdit" class="bg-gray-400 hover:bg-gray-500 text-white text-xs px-3 py-1.5 rounded shadow-sm font-bold">Cancelar</button>
+                                                        <button @click="cancelEdit" class="bg-gray-400 hover:bg-gray-500 text-white text-xs px-3 py-2 md:py-1.5 rounded shadow-sm font-bold flex-1 md:flex-none">Cancelar</button>
                                                     </div>
                                                 </td>
                                             </tr>
-                                            <tr v-if="reservations.length === 0">
-                                                <td colspan="5" class="px-6 py-16 text-center text-gray-500 text-lg font-medium">
+                                            <tr v-if="reservations.length === 0" class="block md:table-row">
+                                                <td colspan="5" class="block md:table-cell px-6 py-16 text-center text-gray-500 text-lg font-medium">
                                                     <div class="flex justify-center mb-4 text-gray-300">
                                                         <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                                     </div>
