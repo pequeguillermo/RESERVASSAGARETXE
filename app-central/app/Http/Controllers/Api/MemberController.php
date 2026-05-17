@@ -43,6 +43,31 @@ class MemberController extends Controller
 
         // Notificación al administrador (solo para miembros nuevos)
         if ($isNew) {
+            // Notificación al socio
+            $memberEmail = $member->email;
+            if ($memberEmail) {
+                try {
+                    $subjectTpl = \App\Models\Setting::where('key', 'club_subject_welcome')->value('value') ?? '¡Bienvenido al Club Sagaretxe!';
+                    $bodyTpl = \App\Models\Setting::where('key', 'club_email_welcome')->value('value')
+                        ?? "Hola [nombre],\n¡Gracias por unirte al Club Sagaretxe!";
+
+                    $body = str_replace(
+                        ['[nombre]', '[apellidos]', '[telefono]', '[email]', '[cp]', '[numero_socio]', '[qr]'],
+                        [$member->name, $member->surname ?? '', $member->phone, $member->email ?? '-', $member->postal_code ?? '-', $member->id + 9000, ''],
+                        $bodyTpl
+                    );
+                    $subject = str_replace(
+                        ['[nombre]', '[apellidos]', '[numero_socio]'],
+                        [$member->name, $member->surname ?? '', $member->id + 9000],
+                        $subjectTpl
+                    );
+
+                    \Illuminate\Support\Facades\Mail::to($memberEmail)->send(new \App\Mail\MemberWelcome($subject, $body, $member));
+                } catch (\Exception $e) {
+                    \Log::error('Error sending club welcome notification: ' . $e->getMessage());
+                }
+            }
+
             $adminEmail = \App\Models\Setting::where('key', 'club_admin_email')->value('value');
             if ($adminEmail) {
                 try {
@@ -80,7 +105,14 @@ class MemberController extends Controller
             'phone' => 'required|string',
         ]);
 
-        $member = Member::where('phone', $request->phone)->first();
+        $search = $request->phone;
+        $memberId = is_numeric($search) ? ((int)$search - 9000) : null;
+        
+        $member = Member::where('phone', $search)
+            ->when($memberId !== null && $memberId > 0, function($query) use ($memberId) {
+                return $query->orWhere('id', $memberId);
+            })
+            ->first();
 
         if ($member) {
             return response()->json([

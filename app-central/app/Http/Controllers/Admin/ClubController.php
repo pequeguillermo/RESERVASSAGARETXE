@@ -36,7 +36,57 @@ class ClubController extends Controller
 
         $validated['qr_token'] = \Illuminate\Support\Str::random(10);
         
-        Member::create($validated);
+        $member = Member::create($validated);
+        
+        // Notificación al socio
+        $memberEmail = $member->email;
+        if ($memberEmail) {
+            try {
+                $subjectTpl = \App\Models\Setting::where('key', 'club_subject_welcome')->value('value') ?? '¡Bienvenido al Club Sagaretxe!';
+                $bodyTpl = \App\Models\Setting::where('key', 'club_email_welcome')->value('value')
+                    ?? "Hola [nombre],\n¡Gracias por unirte al Club Sagaretxe!";
+
+                $body = str_replace(
+                    ['[nombre]', '[apellidos]', '[telefono]', '[email]', '[cp]', '[numero_socio]', '[qr]'],
+                    [$member->name, $member->surname ?? '', $member->phone, $member->email ?? '-', $member->postal_code ?? '-', $member->id + 9000, ''],
+                    $bodyTpl
+                );
+                $subject = str_replace(
+                    ['[nombre]', '[apellidos]', '[numero_socio]'],
+                    [$member->name, $member->surname ?? '', $member->id + 9000],
+                    $subjectTpl
+                );
+
+                \Illuminate\Support\Facades\Mail::to($memberEmail)->send(new \App\Mail\MemberWelcome($subject, $body, $member));
+            } catch (\Exception $e) {
+                \Log::error('Error sending club welcome notification: ' . $e->getMessage());
+            }
+        }
+
+        // Notificación al administrador
+        $adminEmail = \App\Models\Setting::where('key', 'club_admin_email')->value('value');
+        if ($adminEmail) {
+            try {
+                $subjectTpl = \App\Models\Setting::where('key', 'club_subject_admin')->value('value') ?? '🎉 Nuevo Miembro del Club';
+                $bodyTpl = \App\Models\Setting::where('key', 'club_email_admin')->value('value')
+                    ?? "Se ha registrado un nuevo miembro en el Club Sagaretxe:\n\nNombre: [nombre] [apellidos]\nTeléfono: [telefono]\nEmail: [email]\nCódigo Postal: [cp]";
+
+                $body = str_replace(
+                    ['[nombre]', '[apellidos]', '[telefono]', '[email]', '[cp]', '[numero_socio]'],
+                    [$member->name, $member->surname ?? '', $member->phone, $member->email ?? '-', $member->postal_code ?? '-', $member->id + 9000],
+                    $bodyTpl
+                );
+                $subject = str_replace(
+                    ['[nombre]', '[apellidos]', '[numero_socio]'],
+                    [$member->name, $member->surname ?? '', $member->id + 9000],
+                    $subjectTpl
+                );
+
+                \Illuminate\Support\Facades\Mail::to($adminEmail)->send(new \App\Mail\AdminNotification($subject, $body));
+            } catch (\Exception $e) {
+                \Log::error('Error sending club admin notification: ' . $e->getMessage());
+            }
+        }
         
         return redirect()->back()->with('success', 'Miembro creado correctamente');
     }

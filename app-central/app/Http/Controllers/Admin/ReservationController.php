@@ -35,9 +35,15 @@ class ReservationController extends Controller
             }
             $schedules = \App\Models\Schedule::orderBy('day_of_week')->get();
         }
+        $today = now('Europe/Madrid')->toDateString();
 
-        $specialSchedules = \App\Models\SpecialSchedule::where(function($query) {
-            $query->where('date', '>=', now()->toDateString())
+        // Eliminar físicamente de la BBDD las excepciones puntuales pasadas para que no se acumulen
+        \App\Models\SpecialSchedule::where('date', '<', $today)
+            ->where('is_permanent', false)
+            ->delete();
+
+        $specialSchedules = \App\Models\SpecialSchedule::where(function($query) use ($today) {
+            $query->where('date', '>=', $today)
                   ->orWhere('is_permanent', true);
         })->orderBy('date', 'desc')->get();
 

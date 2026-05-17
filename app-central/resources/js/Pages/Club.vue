@@ -225,7 +225,7 @@ const saveEmails = () => {
                             </div>
                             <h3 class="text-2xl font-bold mb-6 text-gray-800 text-center tracking-tight">Validación Manual</h3>
                             <div class="flex flex-col space-y-4 w-full">
-                                <input type="tel" v-model="phoneSearch" placeholder="Teléfono..." class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-xl py-4" @keyup.enter="searchPhone">
+                                <input type="text" v-model="phoneSearch" placeholder="Teléfono o Nº de Socio..." class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-xl py-4" @keyup.enter="searchPhone">
                                 <button @click="searchPhone" class="w-full py-4 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-xl text-lg shadow-md transition-all">
                                     Buscar y Validar
                                 </button>
@@ -278,7 +278,7 @@ const saveEmails = () => {
                                                     </div>
                                                     <div class="ml-4">
                                                         <div class="text-sm font-bold text-gray-900">{{ member.name }} {{ member.surname }}</div>
-                                                        <div class="text-xs text-gray-500">ID: #{{ String(member.id).padStart(4, '0') }}</div>
+                                                        <div class="text-xs text-gray-500">nº de Socio: {{ member.id + 9000 }}</div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -336,6 +336,7 @@ const saveEmails = () => {
                         <span class="bg-white text-indigo-600 font-mono text-xs px-3 py-1 rounded-full font-bold border shadow-sm">[email]</span>
                         <span class="bg-white text-indigo-600 font-mono text-xs px-3 py-1 rounded-full font-bold border shadow-sm">[cp]</span>
                         <span class="bg-white text-indigo-600 font-mono text-xs px-3 py-1 rounded-full font-bold border shadow-sm">[qr]</span>
+                        <span class="bg-white text-indigo-600 font-mono text-xs px-3 py-1 rounded-full font-bold border shadow-sm">[numero_socio]</span>
                     </div>
 
                     <form @submit.prevent="saveEmails" class="space-y-6">
