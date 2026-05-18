@@ -130,6 +130,14 @@ class ReservationController extends Controller
     {
         if ($reservation->status === 'pendiente') {
             $reservation->update(['status' => 'confirmada']);
+            
+            if (!empty($reservation->email)) {
+                try {
+                    Mail::to($reservation->email)->send(new \App\Mail\ReservationFinalConfirmed($reservation));
+                } catch (\Throwable $e) {
+                    \Log::error('Error sending final confirmation email: ' . $e->getMessage());
+                }
+            }
         }
         
         $redirectUrl = Setting::where('key', 'url_confirm_redirect')->value('value');
@@ -145,6 +153,14 @@ class ReservationController extends Controller
     {
         if (in_array($reservation->status, ['pendiente', 'confirmada'])) {
             $reservation->update(['status' => 'cancelada_mail']);
+            
+            if (!empty($reservation->email)) {
+                try {
+                    Mail::to($reservation->email)->send(new \App\Mail\ReservationCancelled($reservation));
+                } catch (\Throwable $e) {
+                    \Log::error('Error sending cancellation email: ' . $e->getMessage());
+                }
+            }
         }
 
         $redirectUrl = Setting::where('key', 'url_cancel_redirect')->value('value');
