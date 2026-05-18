@@ -17,3 +17,4 @@
 - Se ha modificado el sistema del **Club Sagaretxe** para que el ID de socio se muestre como un "Número de Socio", empezando por el 9000 (ID interno + 9000).
 - Se ha actualizado el panel de **validación manual** en el Club para permitir la búsqueda tanto por Teléfono como por el nuevo Número de Socio (ej. introduciendo 9005).
 - Se ha implementado el envío del **Email de Bienvenida** a los nuevos socios al registrarse, con el código QR y variables incluyendo `[numero_socio]`.
+- Se está diagnosticando el problema de envío de emails con **Resend**, para cambiar el entorno local (`MAIL_MAILER=log`) a usar la API/SMTP de Resend.
