@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'default' => env('MAIL_MAILER', 'smtp'),
+    'default' => env('FORCE_MAILER', 'smtp'),
 
     /*
     |--------------------------------------------------------------------------
@@ -41,10 +41,10 @@ return [
             'transport' => 'smtp',
             'scheme' => env('MAIL_SCHEME'),
             'url' => env('MAIL_URL'),
-            'host' => env('MAIL_HOST', 'smtp.resend.com'),
-            'port' => env('MAIL_PORT', 465),
-            'username' => env('MAIL_USERNAME', 'resend'),
-            'password' => env('MAIL_PASSWORD'),
+            'host' => 'smtp.resend.com',
+            'port' => 465,
+            'username' => 'resend',
+            'password' => env('RESEND_API_KEY', env('MAIL_PASSWORD')),
             'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
@@ -111,8 +111,8 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'reservas@sagaretxe.com'),
-        'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Sagaretxe')),
+        'address' => env('RESEND_FROM_ADDRESS', 'reservas@sagaretxe.com'),
+        'name' => env('RESEND_FROM_NAME', env('APP_NAME', 'Sagaretxe')),
     ],
 
 ];
