@@ -18,8 +18,8 @@ Route::get('/test-mail', function (\Illuminate\Http\Request $request) {
                     ->subject('Prueba SMTP Sagaretxe ' . date('Y-m-d H:i:s'));
         });
         return "¡Email enviado correctamente a {$to}! Si no llega, revisa la bandeja de spam. En Resend debería aparecer en logs.";
-    } catch (\Exception $e) {
-        return 'Error al enviar el email: ' . $e->getMessage();
+    } catch (\Throwable $e) {
+        return 'Error FATAL al enviar el email: ' . $e->getMessage();
     }
 });
 

@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'default' => 'resend',
+    'default' => 'resend_http',
 
     /*
     |--------------------------------------------------------------------------
@@ -61,8 +61,9 @@ return [
             // ],
         ],
 
-        'resend' => [
-            'transport' => 'resend',
+        'resend_http' => [
+            'transport' => 'resend_http',
+            'key' => env('RESEND_API_KEY', env('MAIL_PASSWORD')),
         ],
 
         'sendmail' => [

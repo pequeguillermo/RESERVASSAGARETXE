@@ -25,5 +25,9 @@ class AppServiceProvider extends ServiceProvider
         if (config('app.env') === 'production' || env('FORCE_HTTPS', false)) {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
+
+        \Illuminate\Support\Facades\Mail::extend('resend_http', function (array $config = []) {
+            return new \App\Mail\Transport\ResendApiTransport($config['key'] ?? env('MAIL_PASSWORD'));
+        });
     }
 }
