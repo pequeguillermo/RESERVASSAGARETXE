@@ -112,7 +112,7 @@ return [
     */
 
     'from' => [
-        'address' => env('RESEND_FROM_ADDRESS', 'reservas@sagaretxe.com'),
+        'address' => env('RESEND_FROM_ADDRESS', 'reservas@sagaretxe.net'),
         'name' => env('RESEND_FROM_NAME', env('APP_NAME', 'Sagaretxe')),
     ],
 
