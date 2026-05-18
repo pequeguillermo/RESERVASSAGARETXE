@@ -23,6 +23,6 @@ class AdminNotification extends Mailable
     {
         return $this
             ->subject($this->emailSubject)
-            ->html(nl2br(e($this->emailBody)));
+            ->html(nl2br($this->emailBody));
     }
 }

@@ -43,6 +43,6 @@ class ReservationFeedback extends Mailable
             $template
         );
 
-        return $this->html(nl2br(htmlspecialchars($body)));
+        return $this->html(nl2br($body));
     }
 }

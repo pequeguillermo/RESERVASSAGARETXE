@@ -7,7 +7,7 @@
     {!! \App\Models\Setting::where('key', 'club_email_header')->value('value') !!}
     
     <div style="padding: 20px;">
-        {!! nl2br(e($bodyContent)) !!}
+        {!! nl2br($bodyContent) !!}
         
         @if(str_contains($bodyContent, '[qr]'))
             <!-- Si el body contiene el shortcode [qr], lo mostramos como imagen -->
