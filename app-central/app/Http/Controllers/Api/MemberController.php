@@ -63,7 +63,7 @@ class MemberController extends Controller
                     );
 
                     \Illuminate\Support\Facades\Mail::to($memberEmail)->send(new \App\Mail\MemberWelcome($subject, $body, $member));
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     \Log::error('Error sending club welcome notification: ' . $e->getMessage());
                 }
             }
@@ -87,7 +87,7 @@ class MemberController extends Controller
                     );
 
                     \Illuminate\Support\Facades\Mail::to($adminEmail)->send(new \App\Mail\AdminNotification($subject, $body));
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     \Log::error('Error sending club admin notification: ' . $e->getMessage());
                 }
             }

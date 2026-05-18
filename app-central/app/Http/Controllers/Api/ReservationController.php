@@ -77,7 +77,7 @@ class ReservationController extends Controller
         if ($request->filled('email')) {
             try {
                 Mail::to($request->email)->send(new ReservationConfirmed($reservation));
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 // Log email error, but do not fail the reservation
                 \Log::error('Error sending reservation email: ' . $e->getMessage());
             }
@@ -114,7 +114,7 @@ class ReservationController extends Controller
                 );
 
                 Mail::to($adminEmail)->send(new \App\Mail\AdminNotification($subject, $body));
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 \Log::error('Error sending admin notification: ' . $e->getMessage());
             }
         }
