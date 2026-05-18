@@ -42,7 +42,7 @@ return [
             'scheme' => env('MAIL_SCHEME'),
             'url' => env('MAIL_URL'),
             'host' => 'smtp.resend.com',
-            'port' => 465,
+            'port' => 2525,
             'username' => 'resend',
             'password' => env('RESEND_API_KEY', env('MAIL_PASSWORD')),
             'timeout' => null,

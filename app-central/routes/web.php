@@ -5,6 +5,24 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+Route::get('/clear-cache', function () {
+    \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+    return 'Caché de configuración limpiada con éxito en el servidor. Vuelve a probar ahora.';
+});
+
+Route::get('/test-mail', function (\Illuminate\Http\Request $request) {
+    try {
+        $to = $request->get('to', 'admin@sagaretxe.com');
+        \Illuminate\Support\Facades\Mail::raw('Prueba de conexión Resend desde la API de Sagaretxe', function ($message) use ($to) {
+            $message->to($to)
+                    ->subject('Prueba SMTP Sagaretxe ' . date('Y-m-d H:i:s'));
+        });
+        return "¡Email enviado correctamente a {$to}! Si no llega, revisa la bandeja de spam. En Resend debería aparecer en logs.";
+    } catch (\Exception $e) {
+        return 'Error al enviar el email: ' . $e->getMessage();
+    }
+});
+
 Route::get('/', function () {
     return redirect()->route('dashboard');
 });
