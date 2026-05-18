@@ -170,10 +170,12 @@ const emailForm = useForm({
     email_header: props.settings.email_header || '',
     email_footer: props.settings.email_footer || '',
     subject_confirmation: props.settings.subject_confirmation || 'Confirmación de tu reserva',
+    subject_final_confirmation: props.settings.subject_final_confirmation || '¡Tu reserva ha sido confirmada con éxito!',
     subject_cancellation: props.settings.subject_cancellation || 'Cancelación de tu reserva',
     subject_reminder: props.settings.subject_reminder || 'Recordatorio de tu reserva',
     subject_feedback: props.settings.subject_feedback || '¿Qué tal tu experiencia en Sagaretxe?',
-    email_confirmation: props.settings.email_confirmation || 'Hola [nombre],\nTu reserva para el día [fecha] a las [hora] para [comensales] personas está confirmada.',
+    email_confirmation: props.settings.email_confirmation || 'Hola [nombre],\nTu reserva para el día [fecha] a las [hora] para [comensales] personas está pendiente de confirmar.',
+    email_final_confirmation: props.settings.email_final_confirmation || 'Hola [nombre], gracias por confirmar.\nTu reserva para el día [fecha] a las [hora] para [comensales] personas ha sido confirmada.',
     email_cancellation: props.settings.email_cancellation || 'Hola [nombre],\nTu reserva ha sido cancelada.',
     email_reminder_24h: props.settings.email_reminder_24h || 'Hola [nombre],\nTe recordamos tu reserva mañana. Si no vas a asistir, por favor cancela respondiendo a este correo.',
     email_feedback_24h: props.settings.email_feedback_24h || 'Hola [nombre],\n¿Qué tal estuvo tu experiencia? Déjanos una reseña en Google.',
@@ -685,25 +687,31 @@ const formatSpanishDate = (dateString) => {
                                     </div>
 
                                     <div class="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 transition-shadow">
-                                        <label class="flex items-center text-sm font-extrabold text-gray-800 mb-3"><span class="w-6 h-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center mr-2">1</span> Confirmación de Reserva</label>
+                                        <label class="flex items-center text-sm font-extrabold text-gray-800 mb-3"><span class="w-6 h-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center mr-2">1</span> Pendiente de Confirmar (Al reservar)</label>
                                         <input type="text" v-model="emailForm.subject_confirmation" placeholder="Asunto del correo" class="w-full mb-3 rounded-lg border-gray-300 text-sm h-10 shadow-sm focus:ring-indigo-500">
                                         <textarea v-model="emailForm.email_confirmation" rows="5" class="w-full border-0 bg-gray-50 rounded-xl p-4 text-sm font-mono focus:ring-0 text-gray-700"></textarea>
                                     </div>
+
+                                    <div class="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 transition-shadow">
+                                        <label class="flex items-center text-sm font-extrabold text-gray-800 mb-3"><span class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center mr-2">2</span> Reserva Confirmada (Al hacer click)</label>
+                                        <input type="text" v-model="emailForm.subject_final_confirmation" placeholder="Asunto del correo" class="w-full mb-3 rounded-lg border-gray-300 text-sm h-10 shadow-sm focus:ring-indigo-500">
+                                        <textarea v-model="emailForm.email_final_confirmation" rows="5" class="w-full border-0 bg-gray-50 rounded-xl p-4 text-sm font-mono focus:ring-0 text-gray-700"></textarea>
+                                    </div>
                                     
                                     <div class="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 transition-shadow">
-                                        <label class="flex items-center text-sm font-extrabold text-gray-800 mb-3"><span class="w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center mr-2">2</span> Cancelación de Reserva</label>
+                                        <label class="flex items-center text-sm font-extrabold text-gray-800 mb-3"><span class="w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center mr-2">3</span> Cancelación de Reserva</label>
                                         <input type="text" v-model="emailForm.subject_cancellation" placeholder="Asunto del correo" class="w-full mb-3 rounded-lg border-gray-300 text-sm h-10 shadow-sm focus:ring-indigo-500">
                                         <textarea v-model="emailForm.email_cancellation" rows="5" class="w-full border-0 bg-gray-50 rounded-xl p-4 text-sm font-mono focus:ring-0 text-gray-700"></textarea>
                                     </div>
                                     
                                     <div class="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 transition-shadow">
-                                        <label class="flex items-center text-sm font-extrabold text-gray-800 mb-3"><span class="w-6 h-6 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center mr-2">3</span> Recordatorio (24h antes)</label>
+                                        <label class="flex items-center text-sm font-extrabold text-gray-800 mb-3"><span class="w-6 h-6 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center mr-2">4</span> Recordatorio (24h antes)</label>
                                         <input type="text" v-model="emailForm.subject_reminder" placeholder="Asunto del correo" class="w-full mb-3 rounded-lg border-gray-300 text-sm h-10 shadow-sm focus:ring-indigo-500">
                                         <textarea v-model="emailForm.email_reminder_24h" rows="5" class="w-full border-0 bg-gray-50 rounded-xl p-4 text-sm font-mono focus:ring-0 text-gray-700"></textarea>
                                     </div>
                                     
                                     <div class="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 transition-shadow">
-                                        <label class="flex items-center text-sm font-extrabold text-gray-800 mb-3"><span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center mr-2">4</span> Feedback Google (24h después)</label>
+                                        <label class="flex items-center text-sm font-extrabold text-gray-800 mb-3"><span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center mr-2">5</span> Feedback Google (24h después)</label>
                                         <input type="text" v-model="emailForm.subject_feedback" placeholder="Asunto del correo" class="w-full mb-3 rounded-lg border-gray-300 text-sm h-10 shadow-sm focus:ring-indigo-500">
                                         <textarea v-model="emailForm.email_feedback_24h" rows="5" class="w-full border-0 bg-gray-50 rounded-xl p-4 text-sm font-mono focus:ring-0 text-gray-700"></textarea>
                                     </div>
